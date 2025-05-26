@@ -1,0 +1,188 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <include file="Public:head" />
+    <meta name="viewport" content="width=960,target-densitydpi=device-dpi user-scalable=yes" />
+    <link href="__STATIC__/media/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/style-responsive.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/default.css" rel="stylesheet" type="text/css" id="style_color" />
+    <link href="__STATIC__/media/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/style-metro.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/uniform.default.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="__STATIC__/media/css/select2_metro.css" />
+    <link rel="stylesheet" type="text/css" href="__STATIC__/media/css/chosen.css" />
+    <style>
+        .red {
+            color: red;
+        }
+    </style>
+</head>
+
+<body class="page-header-fixed">
+    <div class="page-container">
+        <include file="Public:sidebar" />
+        <div class="page-content">
+            <div>
+                <div class="tab-pane active" id="app" v-cloak>
+                    <div class="portlet box yellow ">
+                        <div class="portlet-body">
+                            <div style="margin-top:10px;padding: 0 20px;">
+                                <a href="javascript:;" class="layui-btn add" @click="add('')">添加</a>
+                            </div>
+                            <table class="table table-bordered table-hover table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            名称
+                                        </th>
+                                        <th>
+                                            api_key
+                                        </th>
+                                        <th>
+                                            api_secret
+                                        </th>
+                                        <th>
+                                            过期时间
+                                        </th>
+                                        <th>
+                                            状态
+                                        </th>
+                                        <th>
+                                            操作
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(item, index) in list">
+                                        <td>
+                                            {{item.name}}
+                                        </td>
+                                        <td>
+                                            {{item.api_key}}
+                                        </td>
+                                        <td>
+                                            {{item.api_secret}}
+                                        </td>
+                                        <td>
+                                            {{item.expire_time}}
+                                        </td>
+                                        <td>
+                                            {{item.statusName}}
+                                        </td>
+                                        <td>
+                                            <a href="javascript:;" @click="add(item.id)">编辑</a>
+                                            <a href="javascript:;" @click="del(index)">删除</a>
+                                        </td>
+                                    </tr>
+                                    </volist>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="__STATIC__/media/js/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>
+    <script src="__STATIC__/media/js/jquery-migrate-1.2.1.min.js" type="text/javascript"></script>
+    <script src="__STATIC__/media/js/bootstrap.min.js" type="text/javascript"></script>
+    <!--[if lt IE 9]>
+            <script src="__STATIC__/media/js/excanvas.min.js">
+            </script>
+            <script src="__STATIC__/media/js/respond.min.js">
+            </script>
+        <![endif]-->
+    <script type="text/javascript" src="__STATIC__/media/js/chosen.jquery.min.js"></script>
+    <script src="__STATIC__/media/js/app.js" type="text/javascript"></script>
+    <script src="__STATIC__/media/js/jquery.uniform.min.js" type="text/javascript"></script>
+    <script src="__STATIC__/js/plupload.full.min.js" type="text/javascript"></script>
+    <script>
+        var app = {};
+        jQuery(document).ready(function () {
+            App.init(); // initlayout and core plugins
+        });
+        layui.use(['layer'], function () {
+            var layer = layui.layer
+            app = new Vue({
+                el: '#app',
+                data: {
+                    list: [],
+                    ws: {},
+                    member: {}
+                },
+                created: function () {
+                    var th = this;
+                    th.getList();
+                },
+                methods: {
+                    getList: function () {
+                        var th = this;
+                        try {
+                            layer.msg('加载中...', { icon: 16, shade: [0.1, '#000'], area: '180px', time: 0 });
+                        } catch (e) { }
+                        $.ajax({
+                            type: 'post',
+                            url: '__APP__/keys/getList',
+                            data: {
+                            },
+                            timeout: 35000,
+                            dataType: 'json',
+                            success: function (data) {
+                                try {
+                                    layer.closeAll();
+                                } catch (e) { }
+                                if (data.code == 0) {
+                                    th.list = data.data;
+                                } else {
+                                    layer.alert(data.msg);
+                                }
+                            }
+                        });
+                    },
+                    //添加设备
+                    add: function (id) {
+                        //点击名称出现详情
+                        var index = layer.open({
+                            title: '操作',
+                            type: 2,
+                            content: '__APP__/keys/add?id=' + id,
+                            area: ['700px', '720px'],
+                            maxmin: true
+                        });
+                    },
+                    //移除设备
+                    del: function (index) {
+                        var th = this;
+                        layer.confirm('确定移除该密钥？', function (idx) {
+                            layer.msg('操作中...', { icon: 16, shade: [0.1, '#000'], area: '180px', time: 0 });
+                            $.ajax({
+                                type: 'post',
+                                url: "__APP__/keys/delAjax",
+                                timeout: 5000,
+                                data: {
+                                    id: th.list[index].id,
+                                    index: index
+                                },
+                                dataType: 'json',
+                                success: function (data) {
+                                    layer.closeAll();
+                                    layer.msg(data.info);
+                                    if (data.status == 'success') {
+                                        th.list.splice(data.index, 1);
+                                    }
+                                }
+                            });
+                        });
+                    },
+                },
+            });
+        });
+    </script>
+    <!-- END JAVASCRIPTS -->
+    <!-- END BODY -->
+</body>
+
+</html>

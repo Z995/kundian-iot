@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+
+<head>
+    <include file='Public/head'>
+        <link href="__STATIC__/media/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+        <link href="__STATIC__/media/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+        <link href="__STATIC__/media/css/style-metro.css" rel="stylesheet" type="text/css" />
+        <link href="__STATIC__/media/css/style.css" rel="stylesheet" type="text/css" />
+        <link href="__STATIC__/media/css/login.css" rel="stylesheet" type="text/css" />
+        <link href="__STATIC__/media/css/flex.css" rel="stylesheet" type="text/css" />
+        <style type="text/css">
+            legend {
+                width: auto !important;
+                border-bottom: none !important;
+            }
+
+            html,
+            body {
+                height: 100%;
+            }
+
+            .content {
+                border-radius: 4px !important;
+                height: 270px !important;
+                padding: 55px 40px 50px !important;
+            }
+
+            .layui-tab-content {
+                padding: 0 !important;
+            }
+
+            ul {
+                margin: 0 !important;
+            }
+
+            .login .content .m-wrap {
+                width: 100%;
+                height: 42px;
+                box-sizing: border-box;
+            }
+
+            .form_title {
+                height: 40px;
+                margin-bottom: 25px;
+                padding: 0 25px;
+                cursor: pointer;
+                overflow: hidden;
+                text-align: center;
+                font-size: 26px;
+                color: #444;
+            }
+
+            .controls input.m-wrap {
+                box-shadow: 0 3px 5px -4px rgb(0 0 0 / 40%) inset, -1px 0 3px -2px rgb(0 0 0 / 10%) inset !important;
+                border-radius: 3px !important;
+                border: 1px solid #d1d1d1 !important;
+            }
+        </style>
+</head>
+<!-- END HEAD -->
+<!-- BEGIN BODY -->
+
+<body class="login flex flex_d_c flex_j_c">
+    <!-- BEGIN LOGO -->
+    <!-- END LOGO -->
+    <!-- BEGIN LOGIN -->
+    <div class="content" id="app" style="position:relative;">
+        <div class="layui-tab layui-tab-brief flex flex_d_c flex_a_c">
+            <div class="form_title">
+                账号登录
+            </div>
+            <div class="layui-tab-content">
+                <div class="layui-tab-item layui-show">
+                    <div id="form">
+                        <div class="alert alert-error hide">
+                            <button class="close" data-dismiss="alert">
+                            </button>
+                            <span>
+                                输入用户名和密码
+                            </span>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label visible-ie8 visible-ie9">
+                                用户名
+                            </label>
+                            <div class="controls">
+                                <div class="input-icon left">
+                                    <i class="icon-user">
+                                    </i>
+                                    <input class="m-wrap placeholder-no-fix" type="text" placeholder="用户名"
+                                        v-model="name" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label visible-ie8 visible-ie9">
+                                密码
+                            </label>
+                            <div class="controls">
+                                <div class="input-icon left">
+                                    <i class="icon-lock">
+                                    </i>
+                                    <input class="m-wrap placeholder-no-fix" type="password" placeholder="密码"
+                                        v-model="password" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" @click="login" class="login_btn loginBtn">
+                                登录
+                            </button>
+                        </div>
+                        <div class="forget-password">
+                            <p>
+                                请使用Chrome类浏览器，本系统仅作为测试使用，随时可能关闭。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- BEGIN LOGIN FORM -->
+        <!-- END LOGIN FORM -->
+    </div>
+    <!-- END LOGIN -->
+    <!-- BEGIN COPYRIGHT -->
+    <!-- END COPYRIGHT -->
+    <script>
+        layui.use('element', function () {
+            var element = layui.element;
+            var app = new Vue({
+                el: '#app',
+                data: {
+                    name: 'admin',
+                    password: '123456',
+                },
+                methods: {
+                    login: function () {
+                        var th = this;
+                        if (th.name == '') {
+                            layer.msg("请输入用户名");
+                            return false;
+                        }
+                        if (th.password == '') {
+                            layer.msg("请输入密码");
+                            return false;
+                        }
+                        layer.alert('注意：本系统为方便测试使用，登录环节没有验证权限，点击登录即可进入设备管理页面，用户正式部署的时候请自行设置验权。', function (index) {
+                            layer.close(index);
+                            layer.msg('登录中...', { icon: 16, shift: 2, time: 0, shade: [0.1, '#000'] });
+                            $.ajax({
+                                type: 'post',
+                                url: "/index/login",
+                                data: "name=" + th.name + "&password=" + th.password,
+                                dataType: 'json',
+                                success: function (data) {
+                                    if (data.code == '0') {
+                                        layer.msg(data.msg, { icon: 16, shade: [0.1, '#000'], time: 500, shadeClose: true, area: '280px' }, function () {
+                                            window.location.href = '/main/index';
+                                        });
+                                    }
+                                    else {
+                                        layer.msg(data.msg);
+                                    }
+                                }
+                            });
+                        })
+                    }
+                }
+            })
+            //…
+        });
+    </script>
+</body>
+<!-- END BODY -->
+
+</html>

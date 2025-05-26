@@ -1,0 +1,272 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <include file="Public:head" />
+    <link href="__STATIC__/media/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/style-responsive.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/default.css" rel="stylesheet" type="text/css" id="style_color" />
+    <link href="__STATIC__/media/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/style-metro.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/uniform.default.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="__STATIC__/media/css/select2_metro.css" />
+    <link rel="stylesheet" type="text/css" href="__STATIC__/media/css/chosen.css" />
+    <style>
+        .addPsize {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+        }
+
+        textarea {
+            width: 95%;
+        }
+
+        .red-fill {
+            color: #e80000;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body class="page-header-fixed" style="background-color: #fff !important;">
+    <div>
+        <div class="tab-pane active" id="app" v-cloak>
+            <div class="portlet box yellow ">
+                <div class="portlet-body">
+                    <table class="table table-bordered table-hover table-striped">
+                        <tbody>
+                            <tr>
+                                <td style="width:120px;">
+                                    协议类型
+                                </td>
+                                <td>
+                                    {{info.typeName}}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    设备名称
+                                </td>
+                                <td>
+                                    {{info.name}}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    IP
+                                </td>
+                                <td v-html="info.ip"></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    {{info.codeType}}
+                                </td>
+                                <td>
+                                    {{info.code}}
+                                </td>
+                            </tr>
+                            <template v-if="info.type == 2">
+                                <tr>
+                                    <td>
+                                        mqtt用户名
+                                    </td>
+                                    <td>
+                                        {{info.username}}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        mqtt密码
+                                    </td>
+                                    <td>
+                                        {{info.password}}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        主题
+                                    </td>
+                                    <td>
+                                        {{info.topic}}
+                                    </td>
+                                </tr>
+                            </template>
+                            <tr v-if="info.type == 0 || info.type == 1">
+                                <td>
+                                    登录类型
+                                </td>
+                                <td>
+                                    <template v-if="info.login == 0">单点登录</template>
+                                    <template v-if="info.login == 1">多点登录</template>
+                                </td>
+                            </tr>
+                            <tr v-if="info.type == '0'">
+                                <td>
+                                    数据类型
+                                </td>
+                                <td>
+                                    <template v-if="info.vtype == 0">ASCII</template>
+                                    <template v-if="info.vtype == 1">HEX</template>
+                                </td>
+                            </tr>
+                            <tr v-if="info.type == '0' || info.type == '2'">
+                                <td>
+                                    数据转发
+                                </td>
+                                <td>
+                                    {{info.forward}}
+                                </td>
+                            </tr>
+                            <tr v-if="info.type == '0' || info.type == 2">
+                                <td>
+                                    Webhook
+                                </td>
+                                <td>
+                                    {{info.http}}
+                                </td>
+                            </tr>
+                            <tr v-if="info.type == '0'">
+                                <td>
+                                    数据过滤
+                                </td>
+                                <td>
+                                    <template v-if="info.filter.is == 0">不启用</template>
+                                    <template v-if="info.filter.is == 1">启用</template>
+                                </td>
+                            </tr>
+                            <template v-if="info.type == '0' && info.filter.is == 1">
+                                <tr v-if="lengStatus == 1">
+                                    <td>
+                                        字节长度
+                                    </td>
+                                    <td>
+                                        <select tabindex="1" v-model="info.filter.lengType" style="width:100px;"
+                                            readonly>
+                                            <option :value="item.val" v-for="(item, index) in lengTypeList">
+                                                {{item.title}}</option>
+                                        </select>
+                                        <input type="number" v-model.number="info.filter.length" placeholder=""
+                                            readonly />
+                                    </td>
+                                </tr>
+                                <tr v-if="textStatus == 1">
+                                    <td>
+                                        前N位字符
+                                    </td>
+                                    <td>
+                                        前{{info.filter.before}}位为{{info.filter.beforeVal}}
+                                    </td>
+                                </tr>
+                                <tr v-if="heartStatus == 1">
+                                    <td>
+                                        心跳包
+                                    </td>
+                                    <td>
+                                        {{info.filter.heartVal}}
+                                    </td>
+                                </tr>
+                            </template>
+                            <tr>
+                                <td>
+                                    备注
+                                </td>
+                                <td>
+                                    {{info.remark}}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var frameIndex = parent.layer.getFrameIndex(window.name);
+
+        layui.use(['layer'], function () {
+            var layer = layui.layer
+
+            var app = new Vue({
+                el: '#app',
+                data: {
+                    info: {
+
+                    },
+                    lengTypeList: [{
+                        title: '请选择',
+                        val: 0
+                    }, {
+                        title: '＞',
+                        val: 1
+                    }, {
+                        title: '＜',
+                        val: 2
+                    }, {
+                        title: '＝',
+                        val: 3
+                    }, {
+                        title: '≥',
+                        val: 4
+                    }, {
+                        title: '≤',
+                        val: 5
+                    }]
+                },
+                created: function () {
+                    var th = this;
+                    th.getLook();
+                },
+                mounted: function () {
+                    var th = this;
+                },
+                methods: {
+                    isEmpty: function (obj) {
+                        for (var key in obj) {
+                            return false;
+                        }
+                        return true;
+                    },
+                    computed: {
+                        lengStatus: function () {
+                            var th = this;
+                            return th.info.filter.type.includes('0') ? 1 : 0;
+                        },
+                        textStatus: function () {
+                            var th = this;
+                            return th.info.filter.type.includes('1') ? 1 : 0;
+                        },
+                        heartStatus: function () {
+                            var th = this;
+                            return th.info.filter.type.includes('2') ? 1 : 0;
+                        },
+                    },
+                    getLook: function () {
+                        var th = this;
+                        $.ajax({
+                            type: 'post',
+                            url: "__APP__/iot/getLook",
+                            timeout: 5000,
+                            data: {
+                                id: '{$Request.param.id}'
+                            },
+                            dataType: 'json',
+                            success: function (data) {
+                                console.log(data)
+                                if (data.code == 0) {
+                                    th.info = data.info;
+                                } else {
+                                    layer.msg(data.msg);
+                                }
+                            }
+                        });
+                    }
+                }
+            })
+        });
+    </script>
+</body>
+
+</html>

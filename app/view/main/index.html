@@ -1,0 +1,113 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <include file="Public:head">
+        <link href="__STATIC__/media/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+        <link href="__STATIC__/media/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+        <link href="__STATIC__/media/css/style.css" rel="stylesheet" type="text/css" />
+        <link href="__STATIC__/media/css/style-responsive.css" rel="stylesheet" type="text/css" />
+        <link href="__STATIC__/media/css/default.css" rel="stylesheet" type="text/css" id="style_color" />
+        <link href="__STATIC__/media/css/style-metro.css" rel="stylesheet" type="text/css" />
+        <style type="text/css">
+            .main {
+                width: 100%;
+                height: auto;
+            }
+
+            .main_01 {
+                width: 95%;
+                height: auto;
+                margin: 0 auto;
+            }
+
+            .main .title {
+                width: 100%;
+                height: 40px;
+                color: #34393f;
+                font-size: 16px;
+                line-height: 40px;
+                border-bottom: 1px solid #ededed;
+                margin: 0 auto;
+            }
+
+            .main .one {
+                width: 21%;
+                max-width: 90px;
+                float: left;
+                margin: 5px;
+                text-align: center;
+                padding-top: 10px;
+            }
+
+            .main .one .span-01 {
+                border-radius: 10px !important;
+                width: 100%;
+                height: 50px;
+                margin: 0 auto;
+                text-align: center;
+                line-height: 50px;
+                color: #fff;
+                padding-top: 5px;
+            }
+
+            .main .one .span-02 {
+                width: 100%;
+                height: 30px;
+                line-height: 30px;
+                text-align: center;
+                color: #1d1a25;
+                margin: 0 auto;
+            }
+
+            .main .one i {
+                margin: 0 auto;
+            }
+
+            .clear {
+                clear: both;
+            }
+        </style>
+</head>
+
+<body class="page-header-fixed">
+        <div class="page-container">
+            <include file="Public:sidebar">
+                <div class="page-content">
+                    <div class="main">
+                        <div class="main_01">
+                            <div class="title">
+                                物联网 </div>
+                            <div class="one">
+                                <a href="__APP__/iot/index">
+                                    <div class="span-01" style="background:#bd6de2;"><i class="icon-sitemap" style="font-size: 30px;"></i></div>
+                                </a>
+                                <a href="__APP__/iot/index">
+                                    <div class="span-02">设备列表</div>
+                                </a>
+                            </div>
+                            <div class="clear"></div>
+                        </div>
+                    </div>
+                    <!-- <a href="__APP__/set/button" class="btn green big btn-block" style="width:96%;margin:0 auto;margin-top:50px;margin-bottom:50px;">设置按钮</a> -->
+                </div>
+        </div>
+        <script src="__STATIC__/media/js/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>
+        <script src="__STATIC__/media/js/bootstrap.min.js" type="text/javascript"></script>
+        <!--[if lt IE 9]>
+            <script src="__STATIC__/media/js/excanvas.min.js">
+            </script>
+            <script src="__STATIC__/media/js/respond.min.js">
+            </script>
+        <![endif]-->
+        <script src="__STATIC__/media/js/app.js" type="text/javascript"></script>
+        <script>
+            jQuery(document).ready(function () {
+                App.init(); // initlayout and core plugins
+            });
+        </script>
+        <!-- END JAVASCRIPTS -->
+        <!-- END BODY -->
+</body>
+
+</html>

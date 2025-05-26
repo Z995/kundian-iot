@@ -1,0 +1,377 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <include file="Public:head" />
+    <link href="__STATIC__/media/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/style-responsive.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/default.css" rel="stylesheet" type="text/css" id="style_color" />
+    <link href="__STATIC__/media/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/style-metro.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/uniform.default.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="__STATIC__/media/css/select2_metro.css" />
+    <link rel="stylesheet" type="text/css" href="__STATIC__/media/css/chosen.css" />
+    <style>
+        .addPsize {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+        }
+
+        textarea {
+            width: 95%;
+        }
+    </style>
+</head>
+
+<body class="page-header-fixed">
+    <div>
+        <div class="tab-pane active" id="app" v-cloak>
+            <div class="portlet box yellow ">
+                <div class="portlet-body">
+                    <table class="table table-bordered table-hover table-striped">
+                        <tbody>
+                            <tr>
+                                <td style="width:100px;">
+                                    协议类型
+                                </td>
+                                <td>
+                                    <input type="radio" v-model="info.type" value="0" /> TCP透传
+                                    <input type="radio" v-model="info.type" value="1" /> WebSocket
+                                    <input type="radio" v-model="info.type" value="2" /> Mqtt
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    名称
+                                </td>
+                                <td>
+                                    <input type="text" v-model.trim="info.name" placeholder="" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <template v-if="info.type == 0 || info.type == 1">自定义注册包</template>
+                                    <template v-if="info.type == 2">客户端id</template>
+                                </td>
+                                <td>
+                                    <input type="text" v-model.trim="info.code" placeholder="" />
+                                </td>
+                            </tr>
+                            <template v-if="info.type == 2">
+                                <tr>
+                                    <td>
+                                        <span class="red-fill">*</span> mqtt用户名
+                                    </td>
+                                    <td>
+                                        <input type="text" v-model.trim="info.username" placeholder="" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <span class="red-fill">*</span> mqtt密码
+                                    </td>
+                                    <td>
+                                        <input type="text" v-model.trim="info.password" placeholder="mqtt密码" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <span class="red-fill">*</span> 主题
+                                    </td>
+                                    <td>
+                                        <input type="text" v-model.trim="info.topic" placeholder="主题" />
+                                    </td>
+                                </tr>
+                            </template>
+                            <tr v-if="info.type == 0 || info.type == 1">
+                                <td>
+                                    自定义回复包
+                                </td>
+                                <td>
+                                    <textarea class="m-wrap" rows="3" v-model.trim="info.recode"></textarea>
+                                    <br>
+                                    <input type="radio" v-model="info.rtype" value="0" /> ASCII
+                                    <input type="radio" v-model="info.rtype" value="1" /> HEX
+                                </td>
+                            </tr>
+                            <tr v-if="info.type == 0 || info.type == 1">
+                                <td>
+                                    登录类型
+                                </td>
+                                <td>
+                                    <input type="radio" v-model="info.login" value="0" /> 单点登录
+                                    <input type="radio" v-model="info.login" value="1" /> 多点登录
+                                </td>
+                            </tr>
+                            <tr v-if="info.type == '0'">
+                                <td>
+                                    数据字段
+                                </td>
+                                <td>
+                                    <input type="text" v-model.trim="info.val" placeholder="redis key" />
+                                    <input type="radio" v-model="info.vtype" value="0" /> ASCII
+                                    <input type="radio" v-model="info.vtype" value="1" /> HEX
+                                </td>
+                            </tr>
+                            <tr v-if="info.type == '0'">
+                                <td>
+                                    设备数据日志
+                                </td>
+                                <td>
+                                    <input type="radio" v-model="info.log" value="0" /> 不记录
+                                    <input type="radio" v-model="info.log" value="1" /> 记录
+                                </td>
+                            </tr>
+                            <tr v-if="info.type == '0' || info.type == '2'">
+                                <td>
+                                    数据转发
+                                </td>
+                                <td>
+                                    <textarea class="m-wrap" rows="3" v-model.trim="info.forward"
+                                        placeholder="转发设备的注册包,多个包用英文逗号分隔"></textarea>
+                                </td>
+                            </tr>
+                            <tr v-if="info.type == '0' || info.type == '2'">
+                                <td>
+                                    Http-Client
+                                </td>
+                                <td>
+                                    <textarea class="m-wrap" rows="3" v-model.trim="info.http"
+                                        placeholder="转发URL地址,多个地址用英文逗号分隔"></textarea>
+                                </td>
+                            </tr>
+                            <tr v-if="info.type == '0'">
+                                <td>
+                                    数据过滤
+                                </td>
+                                <td>
+                                    <input type="radio" v-model="myFilter.is" value="0" /> 不启用
+                                    <input type="radio" v-model="myFilter.is" value="1" /> 启用
+                                </td>
+                            </tr>
+                            <template v-if="myFilter.is == 1 && info.type == '0'">
+                                <tr>
+                                    <td>
+                                        过滤方式
+                                    </td>
+                                    <td>
+                                        <input type="checkbox" v-model="myFilter.type" value="0" /> 字节长度
+                                        <input type="checkbox" v-model="myFilter.type" value="1" /> 前N位字符
+                                        <input type="checkbox" v-model="myFilter.type" value="2" /> 忽略心跳包
+                                    </td>
+                                </tr>
+                                <tr v-if="lengStatus == 1">
+                                    <td>
+                                        字节长度
+                                    </td>
+                                    <td>
+                                        <select tabindex="1" v-model="myFilter.lengType" style="width:100px;">
+                                            <option :value="item.val" v-for="(item, index) in lengTypeList">
+                                                {{item.title}}</option>
+                                        </select>
+                                        <input type="text" v-model.number="myFilter.length" placeholder="" />
+                                    </td>
+                                </tr>
+                                <tr v-if="textStatus == 1">
+                                    <td>
+                                        前N位字符
+                                    </td>
+                                    <td>
+                                        前<input type="text" v-model.number="myFilter.before" placeholder=""
+                                            style="width:50px;" />位为
+                                        <input type="text" v-model.trim="myFilter.beforeVal" placeholder="多个字段逗号分隔" />
+                                    </td>
+                                </tr>
+                                <tr v-if="heartStatus == 1">
+                                    <td>
+                                        心跳包
+                                    </td>
+                                    <td>
+                                        <input type="text" v-model.trim="myFilter.heartVal" placeholder="" />
+                                    </td>
+                                </tr>
+                            </template>
+                            <tr>
+                                <td>
+                                    备注
+                                </td>
+                                <td>
+                                    <input type="text" v-model.trim="info.remark" placeholder="" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    操作
+                                </td>
+                                <td>
+                                    <a href="javascript:;" @click="ok" class="layui-btn layui-btn-danger">确定</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                info: {
+
+                },
+                myFilter: {
+
+                },
+                lengTypeList: [{
+                    title: '请选择',
+                    val: ''
+                }, {
+                    title: '＞',
+                    val: 1
+                }, {
+                    title: '＜',
+                    val: 2
+                }, {
+                    title: '＝',
+                    val: 3
+                }, {
+                    title: '≥',
+                    val: 4
+                }, {
+                    title: '≤',
+                    val: 5
+                }]
+            },
+            computed: {
+                lengStatus: function () {
+                    var th = this;
+                    return th.myFilter.type.includes('0') ? 1 : 0;
+                },
+                textStatus: function () {
+                    var th = this;
+                    return th.myFilter.type.includes('1') ? 1 : 0;
+                },
+                heartStatus: function () {
+                    var th = this;
+                    return th.myFilter.type.includes('2') ? 1 : 0;
+                },
+                dtypeStatus: function () {
+                    var th = this;
+                    return th.info.dtype.includes('0') ? 1 : 0;
+                },
+                redisStatus: function () {
+                    var th = this;
+                    return th.info.dtype.includes('1') ? 1 : 0;
+                }
+            },
+            created: function () {
+                var th = this;
+                th.getInfo();
+            },
+            mounted: function () {
+                var th = this;
+            },
+            methods: {
+                isEmpty: function (obj) {
+                    for (var key in obj) {
+                        return false;
+                    }
+                    return true;
+                },
+                getInfo: function () {
+                    var th = this;
+                    $.ajax({
+                        type: 'post',
+                        url: "__APP__/iot/getInfo",
+                        timeout: 5000,
+                        data: 'id={$id}',
+                        dataType: 'json',
+                        success: function (data) {
+                            console.log(data)
+                            if (data.status == 'success') {
+                                th.info = data.info;
+                                th.myFilter = data.myFilter;
+                            }
+                        }
+                    });
+                },
+                ok: function () {
+                    var th = this;
+                    if (th.info.name == '') {
+                        layer.msg('请填写名称');
+                        return false;
+                    }
+                    if (th.info.code == '') {
+                        layer.msg('请填写' + (th.info.type == 2 ? '客户端id' : '自定义注册包'));
+                        return false;
+                    }
+                    if (th.myFilter.is == '1') //启用
+                    {
+                        if (th.isEmpty(th.myFilter.type)) {
+                            layer.msg('请选择过滤方式');
+                            return false;
+                        }
+                        //字节长度
+                        if (th.lengStatus == '1') {
+                            if (th.myFilter.lengType == '' || th.myFilter.length == '') {
+                                layer.msg('请填写字节长度');
+                                return false;
+                            }
+                        }
+                        //前N位字符
+                        if (th.textStatus == '1') {
+                            if (th.myFilter.before == '' || th.myFilter.beforeVal == '') {
+                                layer.msg('请填写前N位字符');
+                                return false;
+                            }
+                        }
+                    }
+                    if (th.info.type == 2) {
+                        if (th.info.username == '') {
+                            layer.msg('请填写mqtt用户名');
+                            return false;
+                        }
+                        if (th.info.password == '') {
+                            layer.msg('请填写mqtt密码');
+                            return false;
+                        }
+                        if (th.info.topic == '') {
+                            layer.msg('请填写主题');
+                            return false;
+                        }
+                    }
+                    $.ajax({
+                        type: 'post',
+                        url: "__APP__/iot/addAjax",
+                        timeout: 5000,
+                        data: 'id={$id}&info=' + JSON.stringify(th.info) + '&myFilter=' + JSON.stringify(th.myFilter),
+                        dataType: 'json',
+                        success: function (data) {
+                            layer.closeAll();
+                            layer.msg(data.info);
+                            if (data.status == 'success') {
+                                setTimeout(function () {
+                                    parent.location.reload();
+                                }, 500);
+                            }
+                        },
+                        error: function (XMLHttpRequest, textStatus, errorThrown) {
+                            //TODO: 处理status， http status code，超时 408
+                            // 注意：如果发生了错误，错误信息（第二个参数）除了得到null之外，还可能
+                            //是"timeout", "error", "notmodified" 和 "parsererror"。
+                            layer.closeAll('loading');
+                            //layer.alert('操作失败,请重试!');
+                            layer.alert(errorThrown);
+                        }
+                    });
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>

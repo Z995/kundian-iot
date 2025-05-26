@@ -1,0 +1,173 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <include file="Public:head" />
+    <link href="__STATIC__/media/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/style-responsive.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/default.css" rel="stylesheet" type="text/css" id="style_color" />
+    <link href="__STATIC__/media/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/style-metro.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/uniform.default.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="__STATIC__/media/css/select2_metro.css" />
+    <link rel="stylesheet" type="text/css" href="__STATIC__/media/css/chosen.css" />
+    <style>
+        .addPsize {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+        }
+
+        textarea {
+            width: 95%;
+        }
+    </style>
+</head>
+
+<body class="page-header-fixed">
+    <div>
+        <div class="tab-pane active" id="app" v-cloak>
+            <div class="portlet box yellow ">
+                <div class="portlet-body">
+                    <table class="table table-bordered table-hover table-striped">
+                        <tbody>
+                            <tr>
+                                <td>
+                                    密钥名称
+                                </td>
+                                <td>
+                                    <input type="text" v-model.trim="info.name" placeholder="" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="width:100px;">
+                                    是否过期
+                                </td>
+                                <td>
+                                    <input type="radio" v-model="info.expire" value="0" /> 永不过期
+                                    <input type="radio" v-model="info.expire" value="1" /> 过期
+                                </td>
+                            </tr>
+                            <tr v-if="info.expire == 1">
+                                <td>
+                                    过期时间
+                                </td>
+                                <td>
+                                    <input type="date" v-model.trim="info.expire_time" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="width:100px;">
+                                    是否启用
+                                </td>
+                                <td>
+                                    <input type="radio" v-model="info.status" value="0" /> 未启用
+                                    <input type="radio" v-model="info.status" value="1" /> 已启用
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    备注
+                                </td>
+                                <td>
+                                    <input type="text" v-model.trim="info.remark" placeholder="" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    操作
+                                </td>
+                                <td>
+                                    <a href="javascript:;" @click="ok" class="layui-btn layui-btn-danger">确定</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                info: {
+
+                }
+            },
+            computed: {
+            },
+            created: function () {
+                var th = this;
+                th.getInfo();
+            },
+            mounted: function () {
+                var th = this;
+            },
+            methods: {
+                isEmpty: function (obj) {
+                    for (var key in obj) {
+                        return false;
+                    }
+                    return true;
+                },
+                getInfo: function () {
+                    var th = this;
+                    $.ajax({
+                        type: 'post',
+                        url: "__APP__/keys/getInfo",
+                        timeout: 5000,
+                        data: 'id={$id}',
+                        dataType: 'json',
+                        success: function (data) {
+                            console.log(data)
+                            if (data.status == 'success') {
+                                th.info = data.info;
+                                th.myFilter = data.myFilter;
+                            }
+                        }
+                    });
+                },
+                ok: function () {
+                    var th = this;
+                    if (th.info.name == '') {
+                        layer.msg('请填写名称');
+                        return false;
+                    }
+                    if (th.info.expire == '1' && th.info.expire_time == '') {
+                        layer.msg('请设置过期时间');
+                        return false;
+                    }
+                    $.ajax({
+                        type: 'post',
+                        url: "__APP__/keys/addAjax",
+                        timeout: 5000,
+                        data: 'id={$id}&info=' + JSON.stringify(th.info),
+                        dataType: 'json',
+                        success: function (data) {
+                            layer.closeAll();
+                            layer.msg(data.info);
+                            if (data.status == 'success') {
+                                setTimeout(function () {
+                                    parent.location.reload();
+                                }, 500);
+                            }
+                        },
+                        error: function (XMLHttpRequest, textStatus, errorThrown) {
+                            //TODO: 处理status， http status code，超时 408
+                            // 注意：如果发生了错误，错误信息（第二个参数）除了得到null之外，还可能
+                            //是"timeout", "error", "notmodified" 和 "parsererror"。
+                            layer.closeAll('loading');
+                            //layer.alert('操作失败,请重试!');
+                            layer.alert(errorThrown);
+                        }
+                    });
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>

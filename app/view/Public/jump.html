@@ -1,0 +1,57 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta charset="utf-8" />
+        <title>IOT物联网系统</title>
+        <meta content="width=device-width, initial-scale=1.0,user-scalable=no" name="viewport"/>
+        <meta name="renderer" content="webkit|ie-stand" />
+        <meta content="" name="description" />
+        <meta content="" name="author" />
+        <link rel="shortcut icon" href="__STATIC__/media/image/favicon.ico" />
+        <link href="__STATIC__/media/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+        <link href="__STATIC__/media/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+        <link href="__STATIC__/media/css/style.css" rel="stylesheet" type="text/css" />
+        <link href="__STATIC__/media/css/style-responsive.css" rel="stylesheet" type="text/css"/>
+        <link href="__STATIC__/media/css/default.css" rel="stylesheet" type="text/css" id="style_color"/>
+        <script src="__STATIC__/js/jquery-1.9.1.min.js" type="text/javascript"></script>
+        <script type="text/javascript" src="__STATIC__/js/layer/layer.js"></script>
+        <script type="text/javascript" src="__STATIC__/js/laydate/laydate.js"></script>
+        <script type="text/javascript">
+            //layerdate皮肤包
+            $(function(){
+                var message = '<?php echo($message); ?>';//消息
+                var jump_url = '<?php echo($jumpUrl); ?>';//跳转url
+                layer.msg(message + '跳转中...', {icon: 16,shift:5,shade:[0.1,'#000'],shadeClose:true,area:'280px'},function(){
+                    window.location.href = jump_url;
+                }); 
+            })
+        </script>
+    </head>
+    <body class="page-header-fixed">
+        <include file="Public:header" />
+        <div class="page-container">
+            <include file="Public:sidebar" />
+            <div class="page-content">
+            	
+            </div>
+        </div>>
+        <script src="__STATIC__/media/js/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>
+        <script src="__STATIC__/media/js/bootstrap.min.js" type="text/javascript"></script>
+        <!--[if lt IE 9]>
+            <script src="__STATIC__/media/js/excanvas.min.js">
+            </script>
+            <script src="__STATIC__/media/js/respond.min.js">
+            </script>
+        <![endif]-->
+        <script src="__STATIC__/media/js/app.js" type="text/javascript"></script>
+        <script>
+            jQuery(document).ready(function() {
+
+                App.init(); // initlayout and core plugins
+            });
+        </script>
+        <!-- END JAVASCRIPTS -->
+        <!-- END BODY -->
+    </body>
+
+</html>

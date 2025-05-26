@@ -1,0 +1,369 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <include file="Public:head" />
+    <meta name="viewport" content="width=960,target-densitydpi=device-dpi user-scalable=yes" />
+    <link href="__STATIC__/media/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/style-responsive.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/default.css" rel="stylesheet" type="text/css" id="style_color" />
+    <link href="__STATIC__/media/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/style-metro.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/uniform.default.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="__STATIC__/media/css/select2_metro.css" />
+    <link rel="stylesheet" type="text/css" href="__STATIC__/media/css/chosen.css" />
+    <style>
+        .red {
+            color: red;
+        }
+    </style>
+</head>
+
+<body class="page-header-fixed">
+    <div class="page-container">
+        <include file="Public:sidebar" />
+        <div class="page-content">
+            <div>
+                <div class="tab-pane active" id="app" v-cloak>
+                    <div class="portlet box yellow ">
+                        <div class="portlet-body">
+                            <div style="margin-top:10px;padding: 0 20px;">
+                                <a href="javascript:;" class="layui-btn add" @click="add('')">添加</a>
+                            </div>
+                            <table class="table table-bordered table-hover table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            id
+                                        </th>
+                                        <th>
+                                            协议
+                                        </th>
+                                        <th style="width:250px;">
+                                            名称
+                                        </th>
+                                        <th>
+                                            自定义注册包
+                                        </th>
+                                        <th>
+                                            数据字段
+                                        </th>
+                                        <th>
+                                            数据转发
+                                        </th>
+                                        <th>
+                                            操作
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(item, index) in list">
+                                        <td>
+                                            {{item.id}}
+                                        </td>
+                                        <td>
+                                            {{item.typeName}}
+                                        </td>
+                                        <td style="word-wrap:break-word;word-break: break-all;">
+                                            {{item.name}}
+                                            <template v-if="item.online == 0">
+                                                <span class="layui-badge layui-bg-black">离线</span>
+                                            </template>
+                                            <template v-if="item.online == 1">
+                                                <span class="layui-badge">在线</span>
+                                            </template>
+                                            <template v-if="item.remark != ''">
+                                                <br>
+                                                <font style="color: #999;">({{item.remark}})</font>
+                                            </template>
+                                        </td>
+                                        <td>
+                                            {{item.code}}
+                                        </td>
+                                        <td>
+                                            {{item.val}}
+                                        </td>
+                                        <td>
+                                            {{item.forward}}
+                                        </td>
+                                        <td>
+                                            <a href="javascript:;" @click="look(item.id)">查看</a>
+                                            <a href="javascript:;" @click="add(item.id)">编辑</a>
+                                            <a href="javascript:;" @click="addCrontab(item.id)"
+                                                :class="{red: item.isCrontab == 1}" v-if="item.type == 0">定时下发</a>
+                                            <a href="javascript:;" @click="response(item.id)"
+                                                v-if="item.type == 0">被动回复</a>
+                                            <a href="javascript:;" @click="flow(item.name, item.code)"
+                                                v-if="item.type == 0">数据流</a>
+                                            <a href="javascript:;" @click="logs(index)"
+                                                v-if="item.type == 0 || item.type == 2">设备数据日志</a>
+                                            <a href="javascript:;" @click="offline(index)"
+                                                v-if="item.type == 0">下线设备</a>
+                                            <a href="javascript:;" @click="webhook(index)"
+                                                v-if="item.type == 0 || item.type == 2">Webhook日志</a>|
+                                            <a href="javascript:;" @click="del(index)">删除</a>
+                                        </td>
+                                    </tr>
+                                    </volist>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="__STATIC__/media/js/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>
+    <script src="__STATIC__/media/js/jquery-migrate-1.2.1.min.js" type="text/javascript"></script>
+    <script src="__STATIC__/media/js/bootstrap.min.js" type="text/javascript"></script>
+    <!--[if lt IE 9]>
+            <script src="__STATIC__/media/js/excanvas.min.js">
+            </script>
+            <script src="__STATIC__/media/js/respond.min.js">
+            </script>
+        <![endif]-->
+    <script type="text/javascript" src="__STATIC__/media/js/chosen.jquery.min.js"></script>
+    <script src="__STATIC__/media/js/app.js" type="text/javascript"></script>
+    <script src="__STATIC__/media/js/jquery.uniform.min.js" type="text/javascript"></script>
+    <script src="__STATIC__/js/plupload.full.min.js" type="text/javascript"></script>
+    <script>
+        var app = {};
+        jQuery(document).ready(function () {
+            App.init(); // initlayout and core plugins
+        });
+        layui.use(['layer'], function () {
+            var layer = layui.layer
+            app = new Vue({
+                el: '#app',
+                data: {
+                    list: [],
+                    ws: {},
+                    member: {}
+                },
+                created: function () {
+                    var th = this;
+                    th.getWebSocket();
+                    th.getList();
+                },
+                methods: {
+                    getWebSocket: function () {
+                        var th = this;
+                        $.ajax({
+                            type: 'post',
+                            url: '__APP__/iot/getWebSocket',
+                            timeout: 35000,
+                            dataType: 'json',
+                            success: function (data) {
+                                if (data.code == 0) {
+                                    th.openWebSocket(data.data.wsStr, data.data.code);
+                                } else {
+                                    layer.alert(data.msg);
+                                }
+                            }
+                        });
+                    },
+                    //打开websocket
+                    openWebSocket: function (wsStr, code) {
+                        var th = this;
+                        th.ws = new WebSocket(wsStr);
+                        th.ws.onopen = function (evt) {  //绑定连接事件
+                            console.log("Connection has opened ...");
+                            try {
+                                th.ws.send(code);
+                            } catch (e) {
+
+                            }
+                            setInterval(function () {
+                                try {
+                                    th.ws.send('0000');
+                                } catch (e) {
+
+                                }
+                            }, 30000);
+                        };
+                        th.ws.onmessage = function (evt) {
+                            //绑定收到消息事件
+                            console.log("Received Message: " + evt.data);
+                            if (evt.data != '') {
+                                //忽略success
+                                if (evt.data == 'connet success') {
+                                    return;
+                                }
+                                try {
+                                    var data = eval('(' + evt.data + ')');
+                                    if (data.v.online !== undefined) {
+                                        for (var i = 0; i < th.list.length; i++) {
+                                            if (th.list[i].code == data.k) {
+                                                th.list[i].online = data.v.online;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                } catch (e) {
+                                    return;
+                                }
+                            }
+                        };
+                        th.ws.onclose = function (evt) { //绑定关闭或断开连接事件
+                            //重连机制
+                            setTimeout(function () {
+                                th.openWebSocket(wsStr, code);
+                                th.getList();
+                            }, 5000);
+                            console.log("Connection closed.");
+                        };
+                    },
+                    getList: function () {
+                        var th = this;
+                        try {
+                            layer.msg('加载中...', { icon: 16, shade: [0.1, '#000'], area: '180px', time: 0 });
+                        } catch (e) { }
+                        $.ajax({
+                            type: 'post',
+                            url: '__APP__/iot/getList',
+                            data: {
+                                name: '{$Request.param.name}',
+                                code: '{$Request.param.code}',
+                                status: '{$Request.param.status}',
+                            },
+                            timeout: 35000,
+                            dataType: 'json',
+                            success: function (data) {
+                                try {
+                                    layer.closeAll();
+                                } catch (e) { }
+                                if (data.code == 0) {
+                                    th.list = data.data;
+                                } else {
+                                    layer.alert(data.msg);
+                                }
+                            }
+                        });
+                    },
+                    //添加设备
+                    add: function (id) {
+                        //点击名称出现详情
+                        var index = layer.open({
+                            title: '操作',
+                            type: 2,
+                            content: '__APP__/iot/add?id=' + id,
+                            area: ['700px', '720px'],
+                            maxmin: true
+                        });
+                    },
+                    //定时下发
+                    addCrontab: function (id) {
+                        //点击名称出现详情
+                        var index = layer.open({
+                            title: '定时下发',
+                            type: 2,
+                            content: '__APP__/iot/addcrontab?id=' + id,
+                            area: ['750px', '450px'],
+                            maxmin: true
+                        });
+                    },
+                    //被动回复
+                    response: function (id) {
+                        //点击名称出现详情
+                        var index = layer.open({
+                            title: '被动回复',
+                            type: 2,
+                            content: '__APP__/iot/response?id=' + id,
+                            area: ['650px', '650px'],
+                            maxmin: true
+                        });
+                    },
+                    //移除设备
+                    del: function (index) {
+                        var th = this;
+                        layer.confirm('确定移除该设备？', function (idx) {
+                            layer.msg('操作中...', { icon: 16, shade: [0.1, '#000'], area: '180px', time: 0 });
+                            $.ajax({
+                                type: 'post',
+                                url: "__APP__/iot/delAjax",
+                                timeout: 5000,
+                                data: {
+                                    id: th.list[index].id,
+                                    index: index
+                                },
+                                dataType: 'json',
+                                success: function (data) {
+                                    layer.closeAll();
+                                    layer.msg(data.info);
+                                    if (data.status == 'success') {
+                                        th.list.splice(data.index, 1);
+                                    }
+                                }
+                            });
+                        });
+                    },
+                    //数据流
+                    flow: function (name, code) {
+                        //点击名称出现详情
+                        var index = layer.open({
+                            title: name + '数据流',
+                            type: 2,
+                            content: '__APP__/iot/flow?code=' + code,
+                            area: ['850px', '650px'],
+                            maxmin: true
+                        });
+                    },
+                    //查看设备
+                    look: function (id) {
+                        //点击名称出现详情
+                        var index = layer.open({
+                            title: '查看',
+                            type: 2,
+                            content: '__APP__/iot/look?id=' + id,
+                            area: ['700px', '720px'],
+                            maxmin: true
+                        });
+                    },
+                    //设备日志
+                    logs: function (index) {
+                        //点击名称出现详情
+                        var th = this;
+                        window.open('__APP__/iot/logs?device_id=' + th.list[index].id);
+                    },
+                    //webhook日志
+                    webhook: function (index) {
+                        //点击名称出现详情
+                        var th = this;
+                        window.open('__APP__/iot/webhook?device_id=' + th.list[index].id);
+                    },
+                    //下线设备
+                    offline: function (index) {
+                        var th = this;
+                        layer.confirm('确定下线该设备？请确保设备具有重连机制', function (idx) {
+                            layer.msg('操作中...', { icon: 16, shade: [0.1, '#000'], area: '180px', time: 0 });
+                            $.ajax({
+                                type: 'post',
+                                url: "__APP__/iot/offlineAjax",
+                                timeout: 5000,
+                                data: {
+                                    id: th.list[index].id
+                                },
+                                dataType: 'json',
+                                success: function (data) {
+                                    layer.closeAll();
+                                    layer.msg(data.info);
+                                    // if (data.status == 'success') {
+                                    //     setTimeout(function () {
+                                    //         window.location.reload();
+                                    //     }, 1500);
+                                    // }
+                                }
+                            });
+                        });
+                    }
+                },
+            });
+        });
+    </script>
+    <!-- END JAVASCRIPTS -->
+    <!-- END BODY -->
+</body>
+
+</html>

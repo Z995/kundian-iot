@@ -1,0 +1,173 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <include file="Public:head" />
+    <link href="__STATIC__/media/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/style-responsive.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/default.css" rel="stylesheet" type="text/css" id="style_color" />
+    <link href="__STATIC__/media/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/style-metro.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/uniform.default.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="__STATIC__/media/css/select2_metro.css" />
+    <link rel="stylesheet" type="text/css" href="__STATIC__/media/css/chosen.css" />
+    <style>
+        .addPsize {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+        }
+    </style>
+</head>
+
+<body class="page-header-fixed">
+    <div>
+        <div class="tab-pane active" id="app" v-cloak>
+            <div class="portlet box yellow ">
+                <div class="portlet-body">
+                    <table class="table table-bordered table-hover table-striped">
+                        <tbody>
+                            <tr>
+                                <td style="width:100px;">
+                                    状态
+                                </td>
+                                <td>
+                                    <input type="radio" v-model="info.status" value="0" /> 未启用
+                                    <input type="radio" v-model="info.status" value="1" /> 已启用
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="width:100px;">
+                                    执行频率
+                                </td>
+                                <td>
+                                    <input type="radio" v-model="info.times" value="1" /> 1秒1次
+                                    <input type="radio" v-model="info.times" value="2" /> 1秒2次
+                                    <input type="radio" v-model="info.times" value="4" /> 30秒1次
+                                    <input type="radio" v-model="info.times" value="3" /> 1分钟1次
+                                    <input type="radio" v-model="info.times" value="5" /> 3秒1次
+                                    <input type="radio" v-model="info.times" value="6" /> 10秒1次
+                                    <input type="radio" v-model="info.times" value="7" /> 10分钟1次
+                                    <input type="radio" v-model="info.times" value="8" /> 60分钟1次
+                                </td>
+                            </tr>
+                            <tr v-if="info.type == '0'">
+                                <td>
+                                    自定义内容
+                                </td>
+                                <td>
+                                    <input type="radio" v-model="info.vtype" value="0" /> ASCII
+                                    <input type="radio" v-model="info.vtype" value="1" /> HEX
+                                    <br>
+                                    <textarea class="m-wrap" rows="3" style="width:400px;"
+                                        v-model.trim="info.val"></textarea>
+                                </td>
+                            </tr>
+                            <template v-if="info.type == '1'">
+                                <tr>
+                                    <td>
+                                        Redis队列
+                                    </td>
+                                    <td>
+                                        <input type="radio" v-model="info.vtype" value="0" /> ASCII
+                                        <input type="radio" v-model="info.vtype" value="1" /> HEX
+                                        <br>
+                                        <textarea class="m-wrap" rows="3" style="width:400px;"
+                                            v-model.trim="info.val"></textarea>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        队列模式
+                                    </td>
+                                    <td>
+                                        <input type="radio" v-model="info.rtype" value="0" /> 发送即删
+                                        <input type="radio" v-model="info.rtype" value="1" /> 触发即删
+                                        <template v-if="info.rtype == '1'">
+                                            <br>
+                                            触发指令：<textarea class="m-wrap" rows="3" v-model.trim="info.rval"></textarea>
+                                        </template>
+                                    </td>
+                                </tr>
+                            </template>
+                            <tr>
+                                <td>
+                                    操作
+                                </td>
+                                <td>
+                                    <a href="javascript:;" @click="ok" class="layui-btn layui-btn-danger">确定</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="color:#e80000;">*客户端重连方可生效</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                info: {
+
+                }
+            },
+            created: function () {
+                var th = this;
+                th.getCrontabInfo();
+            },
+            methods: {
+                getCrontabInfo: function () {
+                    var th = this;
+                    $.ajax({
+                        type: 'post',
+                        url: "__APP__/iot/getCrontabInfo",
+                        timeout: 5000,
+                        data: 'id={$id}',
+                        dataType: 'json',
+                        success: function (data) {
+                            console.log(data)
+                            if (data.status == 'success') {
+                                th.info = data.info;
+                            }
+                        }
+                    });
+                },
+                ok: function () {
+                    var th = this;
+                    layer.confirm('修改定时下发设置会自动将设备踢下线以使设置生效，请确保设备具有重连机制', function (idx) {
+                        $.ajax({
+                            type: 'post',
+                            url: "__APP__/iot/addCrontabAjax",
+                            timeout: 5000,
+                            data: 'id={$id}&info=' + JSON.stringify(th.info),
+                            dataType: 'json',
+                            success: function (data) {
+                                layer.closeAll();
+                                layer.msg(data.info);
+                                if (data.status == 'success') {
+                                    setTimeout(function () {
+                                        parent.location.reload();
+                                    }, 500);
+                                }
+                            },
+                            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                //TODO: 处理status， http status code，超时 408
+                                // 注意：如果发生了错误，错误信息（第二个参数）除了得到null之外，还可能
+                                //是"timeout", "error", "notmodified" 和 "parsererror"。
+                                layer.closeAll('loading');
+                                //layer.alert('操作失败,请重试!');
+                                layer.alert(errorThrown);
+                            }
+                        });
+                    });
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>

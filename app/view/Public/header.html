@@ -1,0 +1,112 @@
+<link href="__STATIC__/media/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+<link href="__STATIC__/media/css/style.css" rel="stylesheet" type="text/css" />
+<style type="text/css">
+    .bc {
+        cursor: pointer;
+    }
+
+    .bc:hover {
+        text-decoration: none;
+    }
+
+    [v-cloak] {
+        display: none;
+    }
+
+    .online {
+        position: fixed;
+        left: 0;
+        bottom: -10px;
+        width: 225px;
+        height: 30px;
+        text-align: center;
+        line-height: 30px;
+        cursor: pointer;
+    }
+
+    .online p {
+        color: #fff;
+        font-size: 12px;
+    }
+</style>
+<!-- BEGIN HEADER -->
+<div class="header navbar navbar-inverse navbar-fixed-top">
+    <!-- BEGIN TOP NAVIGATION BAR -->
+    <div class="navbar-inner">
+        <div class="container-fluid" style="position:relative;">
+            <!-- BEGIN RESPONSIVE MENU TOGGLER -->
+            <a href="javascript:;" class="btn-navbar collapsed" data-toggle="collapse" data-target=".nav-collapse">
+                <img src="__STATIC__/media/image/menu-toggler.png" alt="" /></a>
+            <!-- END RESPONSIVE MENU TOGGLER -->
+            <!-- BEGIN TOP NAVIGATION MENU -->
+            <ul class="nav pull-right">
+                <!-- BEGIN NOTIFICATION DROPDOWN -->
+                <li class="dropdown" id="tasks" v-cloak>
+                    <div v-if="show == 1" class="online" @click="monitor">
+                        <p v-html="online"></p>
+                    </div>
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                        <i class="icon-warning-sign"></i>
+                        <span class="badge" v-if="count != 0">{{count}}</span>
+                    </a>
+                    <ul class="dropdown-menu extended tasks">
+                        <li>
+                            <p>通知提醒</p>
+                        </li>
+                        <li>
+                            <a :href="item.url">
+                                <i class="icon-bolt"></i> <span>这是一个通知</span>
+                                <span class="time"></span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="dropdown user">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                        <img alt="admin" src="__STATIC__/images/pic.jpg" style="width:29px;height: 29px;" />
+                        <span class="username">admin</span>
+                        <i class="icon-angle-down"></i>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="#">
+                                <i class="icon-user"></i>个人设置</a>
+                        </li>
+                        <li class="divider"></li>
+                        <li>
+                            <a href="javascript:;" class="login_out">
+                                <i class="icon-key"></i>退出</a>
+                        </li>
+                    </ul>
+                </li>
+                <!-- END USER LOGIN DROPDOWN -->
+            </ul>
+            <!-- END TOP NAVIGATION MENU -->
+        </div>
+    </div>
+    <!-- END TOP NAVIGATION BAR -->
+</div>
+<script>
+    $(function () {
+        $(".login_out").click(function () {
+            layer.confirm('确定要安全退出吗?', {
+                title: '提示',
+                btn: ['确定', '取消']
+            }, function () {
+                layer.closeAll();
+                layer.msg('正在退出...', { icon: 16, shift: 2, time: 0, shade: [0.1, '#000'] });
+                $.ajax({
+                    type: 'post',
+                    url: "__APP__/index/login_out",
+                    dataType: 'json',
+                    success: function (d) {
+                        layer.msg(d.msg);
+                        setTimeout(function () {
+                            window.location.href = "__APP__/index";
+                        }, 1000);
+                    }
+                });
+            });
+        });
+    })
+</script>

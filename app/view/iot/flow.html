@@ -1,0 +1,377 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <include file="Public:head" />
+    <link href="__STATIC__/media/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/style.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/style-responsive.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/default.css" rel="stylesheet" type="text/css" id="style_color" />
+    <link href="__STATIC__/media/css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/style-metro.css" rel="stylesheet" type="text/css" />
+    <link href="__STATIC__/media/css/uniform.default.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="__STATIC__/media/css/select2_metro.css" />
+    <link rel="stylesheet" type="text/css" href="__STATIC__/media/css/chosen.css" />
+    <style>
+        .flow {
+            width: 100%;
+            height: 400px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .flow ul .receiv {
+            position: relative;
+            height: auto;
+            margin-bottom: 10px;
+            min-height: 68px;
+        }
+
+        .flow ul .receiv .chat-use {
+            width: 100%;
+            min-height: 68px;
+        }
+
+        .flow ul .receiv .chat-use img {
+            width: 40px;
+            height: 40px;
+            border-radius: 100%;
+            margin-top: 10px;
+        }
+
+        .flow ul .receiv .chat-use cite {
+            position: absolute;
+            left: 60px;
+            top: -2px;
+            width: auto;
+            line-height: 24px;
+            color: #999;
+            text-align: left;
+        }
+
+        .flow ul .receiv .chat-use cite i {
+            font-style: normal;
+            padding-left: 15px;
+        }
+
+        .flow ul .receiv .chat-text {
+            position: relative;
+            line-height: 22px;
+            padding: 8px 15px;
+            background: #e2e2e2;
+            color: #333;
+            display: inline-block;
+            left: 60px;
+            top: -40px;
+            width: 600px;
+            word-wrap: break-word;
+        }
+
+        .flow ul .receiv .chat-text:after {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 13px;
+            width: 0;
+            height: 0;
+            border-style: solid dashed dashed;
+            border-color: #e2e2e2 transparent transparent;
+            border-width: 10px;
+            overflow: hidden;
+        }
+
+        .flow ul .send {
+            position: relative;
+            height: auto;
+            margin-bottom: 10px;
+            min-height: 68px;
+            text-align: right;
+        }
+
+        .flow ul .send .chat-use {
+            width: 100%;
+            min-height: 68px;
+        }
+
+        .flow ul .send .chat-use img {
+            width: 40px;
+            height: 40px;
+            border-radius: 100%;
+            margin-top: 10px;
+            float: right;
+        }
+
+        .flow ul .send .chat-use cite {
+            position: absolute;
+            right: 60px;
+            top: -2px;
+            width: auto;
+            line-height: 24px;
+            color: #999;
+        }
+
+        .flow ul .send .chat-use cite i {
+            font-style: normal;
+            padding-right: 15px;
+        }
+
+        .flow ul .send .chat-text {
+            position: absolute;
+            line-height: 22px;
+            padding: 8px 15px;
+            background: #e2e2e2;
+            color: #333;
+            display: inline-block;
+            right: 60px;
+            top: 30px;
+        }
+
+        .flow ul .send .chat-text:after {
+            content: '';
+            position: absolute;
+            right: -10px;
+            top: 13px;
+            width: 0;
+            height: 0;
+            border-style: solid dashed dashed;
+            border-color: #e2e2e2 transparent transparent;
+            border-width: 10px;
+            overflow: hidden;
+        }
+
+        .chat {
+            width: 100%;
+            height: auto;
+        }
+
+        .chat textarea {
+            width: 98%;
+        }
+
+        .portlet {
+            margin-bottom: 0 !important;
+        }
+
+        .my-ul {
+            position: relative;
+        }
+
+        .new-news {
+            position: fixed;
+            right: 52px;
+            z-index: 10;
+            padding: 10px 15px;
+            color: #0bb20c;
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            background-color: white;
+        }
+
+        .new-news:after {
+            content: '';
+            display: block;
+            position: absolute;
+            bottom: -18px;
+            left: 45%;
+            width: 0;
+            height: 0;
+            border: 10px solid transparent;
+            border-top: 10px solid white;
+        }
+    </style>
+</head>
+
+<body class="page-header-fixed">
+    <div>
+        <div class="tab-pane active" id="app" v-cloak>
+            <div class="portlet box yellow ">
+                <div class="portlet-body">
+                    <div class="flow" ref="scrollview" @mousewheel="scrollChange">
+                        <div class="new-news" v-if="hasNew" :style="'bottom: ' + bottomValue + 'px;'"
+                            @click="hasNew = false;target = true;">
+                            有新消息
+                        </div>
+                        <ul class="my-ul">
+                            <template v-for="(item, index) in list">
+                                <li class="receiv" v-if="item.type == 'receiv'">
+                                    <div class="chat-use">
+                                        <img
+                                            src="__STATIC__/images/nopic.png"><cite>{{item.title}}<i>{{item.time}}</i></cite>
+                                    </div>
+                                    <div class="chat-text">{{item.val}}</div>
+                                </li>
+                                <li class="send" v-if="item.type == 'send'">
+                                    <div class="chat-use">
+                                        <img
+                                            src="__STATIC__/images/pic.jpg"><cite><i>{{item.time}}</i>{{item.title}}</cite>
+                                    </div>
+                                    <div class="chat-text">{{item.val}}</div>
+                                </li>
+                            </template>
+                            <a href="#down" id="down">&nbsp;</a>
+                        </ul>
+                    </div>
+                    <div class="chat">
+                        <textarea class="m-wrap" rows="3" v-model.trim="info.message"></textarea>
+                        <br>
+                        <input type="radio" v-model="info.type" value="0" /> ASCII
+                        <input type="radio" v-model="info.type" value="1" /> HEX
+                        <input type="radio" v-model="info.type" value="2" /> GB2312
+                        &nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" v-model="info.eol" /> 末尾加换行
+                        <br>
+                        <br>
+                        <a href="javascript:;" @click="ok" class="layui-btn layui-btn-danger">发送</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                list: [],
+                code: '{$code}',
+                info: {
+                    message: '',
+                    type: '0',
+                    eol: false
+                },
+                ws: {},
+                from: '{$super_code}',
+
+                //有新消息，根据监听list变化判断
+                hasNew: false,
+                //按钮距离底部距离
+                bottomValue: null,
+                //事件滚动来源是否是按钮
+                target: false,
+            },
+            watch: {
+                list: {
+                    handler: function (val) {
+                        var th = this;
+                        console.log('监听变化', th.hasNew);
+                        if (!th.hasNew) {
+                            th.toBottom();
+                        }
+                    },
+                    deep: true
+                }
+            },
+            created: function () {
+                var th = this;
+                th.openWebSocket();
+                th.toBottom();
+                //按钮的距离底部距离=文档流高度-flow高度
+                th.bottomValue = $(document).innerHeight() - $('.flow').height();
+            },
+            mounted() {
+                const scrollview = this.$refs['scrollview'];
+                //加滚动监听
+                scrollview.addEventListener('scroll', this.scrollChange, true);
+                //加触摸监听
+                scrollview.addEventListener('touchmove', this.touchmoveChange, true);
+            },
+            methods: {
+                //监听触摸事件
+                touchmoveChange: function () {
+                    this.mobile = true;
+                    this.target = false;
+                },
+                //监听滚动事件，PC：mousewheel；mobile:scroll（都是scroll，当来源是点击按钮到底部时，target为真，进入判断hasNew为真）。
+                scrollChange(e) {
+                    var th = this;
+                    if ((e.type == 'mousewheel' || (e.type == 'scroll' && th.mobile && !th.target)) && ($('.my-ul').height() > $('.flow').height())) {
+                        th.hasNew = true;
+                    }
+                },
+                //滚动到底部
+                toBottom: function () {
+                    $('.flow').animate({ scrollTop: $('.my-ul').height() }, 50);
+                },
+                isEmpty: function (obj) {
+                    for (var key in obj) {
+                        return false;
+                    }
+                    return true;
+                },
+                getTime: function () {
+                    var time = new Date();
+                    var m = time.getMonth() + 1;
+                    var t = time.getFullYear() + "-" + m + "-"
+                        + time.getDate() + " " + time.getHours() + ":"
+                        + time.getMinutes() + ":" + time.getSeconds();
+                    return t;
+                },
+                openWebSocket: function () {
+                    var th = this;
+                    th.ws = new WebSocket("ws://{$ip}:{$port}");
+                    th.ws.onopen = function (evt) {  //绑定连接事件
+                        console.log("Connection open ...");
+                        th.ws.send(th.from);
+                        setInterval(function () {
+                            th.ws.send('0000');
+                        }, 30000);
+                    };
+                    th.ws.onmessage = function (evt) {
+                        //绑定收到消息事件
+                        if (evt.data != '' && evt.data != '') {
+                            if (evt.data == 'connet success') {
+                                th.list.push({
+                                    type: 'receiv',
+                                    title: th.code,
+                                    time: th.getTime(),
+                                    val: evt.data
+                                });
+                            }
+                            else {
+                                var data = eval('(' + evt.data + ')');
+                                // console.log(data);
+                                if (data.k == th.code) {
+                                    th.list.push({
+                                        type: 'receiv',
+                                        title: th.code,
+                                        time: data.t,
+                                        val: data.v.replace(/\s+/g, '')
+                                    });
+                                }
+                            }
+                        }
+                    };
+                    th.ws.onclose = function (evt) { //绑定关闭或断开连接事件
+                        console.log("Connection closed.");
+                        setTimeout(function () {
+                            th.openWebSocket();
+                        }, 5000);
+                    };
+                },
+                ok: function () {
+                    var th = this;
+                    if (th.info.message == '') {
+                        layer.msg('请填写发送内容');
+                        return false;
+                    }
+                    var arr = {
+                        to: th.code,
+                        type: th.info.type,
+                        eol: th.info.eol ? 1 : 0,
+                        val: th.info.message.replace(/\s+/g, '')
+                    };
+                    console.log(arr)
+                    th.ws.send(JSON.stringify(arr));
+                    th.list.push({
+                        type: 'send',
+                        title: th.from,
+                        time: th.getTime(),
+                        val: th.info.message
+                    });
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>
