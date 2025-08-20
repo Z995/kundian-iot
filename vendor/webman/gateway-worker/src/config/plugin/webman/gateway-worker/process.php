@@ -8,7 +8,7 @@ return [
     'gateway' => [
         'handler'     => Gateway::class,
         'listen'      => 'websocket://0.0.0.0:7272',
-        'count'       => 2,
+        'count'       => cpu_count(),
         'reloadable'  => false,
         'constructor' => ['config' => [
             'lanIp'           => '127.0.0.1',
@@ -32,7 +32,6 @@ return [
         'handler'     => Register::class,
         'listen'      => 'text://127.0.0.1:1236',
         'count'       => 1, // Must be 1
-        'reloadable'  => false,
         'constructor' => []
     ],
 ];

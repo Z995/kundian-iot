@@ -13,65 +13,74 @@
  */
 namespace Workerman\Http;
 
+use Exception;
+use Psr\Http\Message\MessageInterface;
+use RuntimeException;
+use Throwable;
 use \Workerman\Connection\AsyncTcpConnection;
-use \Workerman\Timer;
+use Workerman\Psr7\MultipartStream;
+use Workerman\Psr7\UriResolver;
 use Workerman\Psr7\Uri;
+use function Workerman\Psr7\_parse_message;
+use function Workerman\Psr7\rewind_body;
+use function Workerman\Psr7\str;
 
 /**
  * Class Request
  * @package Workerman\Http
  */
+#[\AllowDynamicProperties]
 class Request extends \Workerman\Psr7\Request
 {
     /**
-     * @var AsyncTcpConnection
+     * @var ?AsyncTcpConnection
      */
-    protected $_connection = null;
+    protected ?AsyncTcpConnection $connection = null;
 
     /**
-     * @var Emitter
+     * @var ?Emitter
      */
-    protected $_emitter = null;
+    protected ?Emitter $emitter = null;
 
     /**
-     * @var Response
+     * @var ?Response
      */
-    protected $_response = null;
-
-    /**
-     * @var string
-     */
-    protected $_recvBuffer = '';
-
-    /**
-     * @var int
-     */
-    protected $_expectedLength = 0;
-
-    /**
-     * @var int
-     */
-    protected $_chunkedLength = 0;
+    protected ?Response $response = null;
 
     /**
      * @var string
      */
-    protected $_chunkedData = '';
+    protected string $receiveBuffer = '';
+
+    /**
+     * @var int
+     */
+    protected int $expectedLength = 0;
+
+    /**
+     * @var int
+     */
+    protected int $chunkedLength = 0;
+
+    /**
+     * @var string
+     */
+    protected string $chunkedData = '';
 
     /**
      * @var bool
      */
-    protected $_writeable = true;
+    protected bool $writeable = true;
 
     /**
      * @var bool
      */
-    protected $_selfConnection = false;
+    protected bool $selfConnection = false;
 
     /**
      * @var array
      */
-    protected $_options = [
+    protected array $options = [
         'allow_redirects' => [
             'max' => 5
         ]
@@ -83,7 +92,7 @@ class Request extends \Workerman\Psr7\Request
      */
     public function __construct($url)
     {
-        $this->_emitter = new Emitter();
+        $this->emitter = new Emitter();
         $headers = [
             'User-Agent' => 'workerman/http-client',
             'Connection' => 'keep-alive'
@@ -95,18 +104,18 @@ class Request extends \Workerman\Psr7\Request
      * @param $options
      * @return $this
      */
-    public function setOptions($options)
+    public function setOptions($options): static
     {
-        $this->_options = array_merge($this->_options, $options);
+        $this->options = array_merge($this->options, $options);
         return $this;
     }
 
     /**
      * @return array
      */
-    public function getOptions()
+    public function getOptions(): array
     {
-        return $this->_options;
+        return $this->options;
     }
 
     /**
@@ -114,19 +123,30 @@ class Request extends \Workerman\Psr7\Request
      * @param $callback
      * @return $this
      */
-    public function on($event, $callback)
+    public function on($event, $callback): static
     {
-        $this->_emitter->once($event, $callback);
+        $this->emitter->on($event, $callback);
+        return $this;
+    }
+
+    /**
+     * @param $event
+     * @param $callback
+     * @return $this
+     */
+    public function once($event, $callback): static
+    {
+        $this->emitter->once($event, $callback);
         return $this;
     }
 
     /**
      * @param $event
      */
-    public function emit($event)
+    public function emit($event): void
     {
         $args = func_get_args();
-        call_user_func_array(array($this->_emitter, 'emit'), $args);
+        call_user_func_array(array($this->emitter, 'emit'), $args);
     }
 
     /**
@@ -134,9 +154,9 @@ class Request extends \Workerman\Psr7\Request
      * @param $listener
      * @return $this
      */
-    public function removeListener($event, $listener)
+    public function removeListener($event, $listener): static
     {
-        $this->_emitter->removeListener($event, $listener);
+        $this->emitter->removeListener($event, $listener);
         return $this;
     }
 
@@ -144,9 +164,9 @@ class Request extends \Workerman\Psr7\Request
      * @param null $event
      * @return $this
      */
-    public function removeAllListeners($event = null)
+    public function removeAllListeners($event = null): static
     {
-        $this->_emitter->removeAllListeners($event);
+        $this->emitter->removeAllListeners($event);
         return $this;
     }
 
@@ -154,25 +174,28 @@ class Request extends \Workerman\Psr7\Request
      * @param $event
      * @return $this
      */
-    public function listeners($event)
+    public function listeners($event): static
     {
-        $this->_emitter->listeners($event);
+        $this->emitter->listeners($event);
         return $this;
     }
 
     /**
      * Connect.
+     *
+     * @return void
+     * @throws Exception
      */
-    protected function connect()
+    protected function connect(): void
     {
         $host = $this->getUri()->getHost();
         $port = $this->getUri()->getPort();
         if (!$port) {
             $port = $this->getDefaultPort();
         }
-        $context = array();
-        if (!empty( $this->_options['context'])) {
-            $context = $this->_options['context'];
+        $context = [];
+        if (!empty( $this->options['context'])) {
+            $context = $this->options['context'];
         }
         $ssl = $this->getUri()->getScheme() === 'https';
         if (!$ssl) {
@@ -182,28 +205,35 @@ class Request extends \Workerman\Psr7\Request
         if ($ssl) {
             $connection->transport = 'ssl';
         }
+        ProxyHelper::setConnectionProxy($connection, $context);
         $this->attachConnection($connection);
-        $this->_selfConnection = true;
+        $this->selfConnection = true;
         $connection->connect();
     }
 
     /**
-     * @param string $data
+     * @param string|array $data
      * @return $this
      */
-    public function write($data = '')
+    public function write(string|array $data = ''): static
     {
         if (!$this->writeable()) {
-            $this->emitError(new \Exception('Request pending and can not send request again'));
+            $this->emitError(new RuntimeException('Request pending and can not send request again'));
             return $this;
         }
 
-        if (empty($data) && $data !== '0' && $data !== 0) {
+        if (empty($data) && $data !== '0') {
             return $this;
         }
 
         if (is_array($data)) {
-            $data = http_build_query($data, '', '&');
+            if (isset($data['multipart'])) {
+                $multipart = new MultipartStream($data['multipart']);
+                $this->withHeader('Content-Type', 'multipart/form-data; boundary=' . $multipart->getBoundary());
+                $data = $multipart;
+            } else {
+                $data = http_build_query($data, '', '&');
+            }
         }
 
         $this->getBody()->write($data);
@@ -211,50 +241,65 @@ class Request extends \Workerman\Psr7\Request
     }
 
     /**
-     * @param string $data
-     * @throws \Exception
+     * @param $buffer
+     * @return void
      */
-    public function end($data = '')
+    public function writeToResponse($buffer): void
     {
-        if (($data || $data === '0' || $data === 0) || $this->getBody()->getSize()) {
-            if (isset($this->_options['headers'])) {
-                $headers = array_change_key_case($this->_options['headers']);
-                if (!isset($headers['content-type'])) {
-                    $this->withHeader('Content-Type', 'application/x-www-form-urlencoded');
-                }
-            } else {
-                $this->withHeader('Content-Type', 'application/x-www-form-urlencoded');
+        $this->emit('progress', $buffer);
+        $this->response->getBody()->write($buffer);
+    }
+
+    /**
+     * @param string $data
+     * @throws Exception
+     */
+    public function end(string $data = ''): void
+    {
+        if (isset($this->options['version'])) {
+            $this->withProtocolVersion($this->options['version']);
+        }
+
+        if (isset($this->options['method'])) {
+            $this->withMethod($this->options['method']);
+        }
+
+        if (isset($this->options['headers'])) {
+            foreach ($this->options['headers'] as $key => $value) {
+                $this->withHeader($key, $value);
             }
         }
-        if (isset($this->_options['version'])) {
-            $this->withProtocolVersion($this->_options['version']);
-        }
 
-        if (isset($this->_options['method'])) {
-            $this->withMethod($this->_options['method']);
-        }
-
-        if (isset($this->_options['headers'])) {
-            $this->withHeaders($this->_options['headers']);
-        }
-
-        $query = isset($this->_options['query']) ? $this->_options['query'] : '';
+        $query = $this->options['query'] ?? '';
         if ($query || $query === '0') {
+            $userParams = [];
             if (is_array($query)) {
-                $query = http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+                $userParams = $query;
+            } else {
+                parse_str((string)$query, $userParams);
             }
-            $uri = $this->getUri()->withQuery($query);
+
+            $originalParams = [];
+            parse_str($this->getUri()->getQuery(), $originalParams);
+            $mergedParams = array_merge($originalParams, $userParams);
+            $mergedQuery = http_build_query($mergedParams, '', '&', PHP_QUERY_RFC3986);
+            $uri = $this->getUri()->withQuery($mergedQuery);
             $this->withUri($uri);
         }
 
         if ($data !== '') {
             $this->write($data);
         }
-        if (!$this->_connection) {
+
+        if ((($data || $data === '0') || $this->getBody()->getSize()) && !$this->hasHeader('Content-Type')) {
+            $this->withHeader('Content-Type', 'application/x-www-form-urlencoded');
+        }
+
+        if (!$this->connection) {
             $this->connect();
         } else {
-            if ($this->_connection->getStatus(false) === 'CONNECTING') {
-                $this->_connection->onConnect = array($this, 'onConnect');
+            if ($this->connection->getStatus(false) === 'CONNECTING') {
+                $this->connection->onConnect = array($this, 'onConnect');
                 return;
             }
             $this->doSend();
@@ -264,67 +309,67 @@ class Request extends \Workerman\Psr7\Request
     /**
      * @return bool
      */
-    public function writeable()
+    public function writeable(): bool
     {
-        return $this->_writeable;
+        return $this->writeable;
     }
 
-    public function doSend()
+    public function doSend(): void
     {
         if (!$this->writeable()) {
-            $this->emitError(new \Exception('Request pending and can not send request again'));
+            $this->emitError(new RuntimeException('Request pending and can not send request again'));
             return;
         }
 
-        $this->_writeable = false;
+        $this->writeable = false;
 
         $body_size = $this->getBody()->getSize();
         if ($body_size) {
             $this->withHeaders(['Content-Length' => $body_size]);
         }
 
-        $package = \Workerman\Psr7\str($this);
-        $this->_connection->send($package);
+        $package = str($this);
+        $this->connection->send($package);
     }
 
-    public function onConnect()
+    public function onConnect(): void
     {
         try {
             $this->doSend();
-        } catch (\Exception $e) {
+        } catch (Throwable $e) {
             $this->emitError($e);
         }
     }
 
     /**
      * @param $connection
-     * @param $recv_buffer
+     * @param $receive_buffer
      */
-    public function onMessage($connection, $recv_buffer)
+    public function onMessage($connection, $receive_buffer): void
     {
         try {
-            $this->_recvBuffer .= $recv_buffer;
-            if (!strpos($this->_recvBuffer, "\r\n\r\n")) {
+            $this->receiveBuffer .= $receive_buffer;
+            if (!strpos($this->receiveBuffer, "\r\n\r\n")) {
                 return;
             }
 
-            $response_data = \Workerman\Psr7\_parse_message($this->_recvBuffer);
+            $response_data = _parse_message($this->receiveBuffer);
 
             if (!preg_match('/^HTTP\/.* [0-9]{3}( .*|$)/', $response_data['start-line'])) {
                 throw new \InvalidArgumentException('Invalid response string: ' . $response_data['start-line']);
             }
             $parts = explode(' ', $response_data['start-line'], 3);
 
-            $this->_response = new Response(
+            $this->response = new Response(
                 $parts[1],
                 $response_data['headers'],
                 '',
                 explode('/', $parts[0])[1],
-                isset($parts[2]) ? $parts[2] : null
+                $parts[2] ?? null
             );
 
             $this->checkComplete($response_data['body']);
-        } catch (\Exception $e) {
+        } catch (Throwable $e) {
             $this->emitError($e);
         }
     }
@@ -332,31 +377,31 @@ class Request extends \Workerman\Psr7\Request
     /**
      * @param $body
      */
-    protected function checkComplete($body)
+    protected function checkComplete($body): void
     {
-        $status_code = $this->_response->getStatusCode();
-        $content_length = $this->_response->getHeaderLine('Content-Length');
+        $status_code = $this->response->getStatusCode();
+        $content_length = $this->response->getHeaderLine('Content-Length');
         if ($content_length === '0' || ($status_code >= 100 && $status_code < 200)
             || $status_code === 204 || $status_code === 304) {
             $this->emitSuccess();
             return;
         }
 
-        $transfer_encoding = $this->_response->getHeaderLine('Transfer-Encoding');
+        $transfer_encoding = $this->response->getHeaderLine('Transfer-Encoding');
         // Chunked
-        if ($transfer_encoding && false === strpos($transfer_encoding, 'identity')) {
-            $this->_connection->onMessage = array($this, 'handleChunkedData');
-            $this->handleChunkedData($this->_connection, $body);
+        if ($transfer_encoding && !str_contains($transfer_encoding, 'identity')) {
+            $this->connection->onMessage = array($this, 'handleChunkedData');
+            $this->handleChunkedData($this->connection, $body);
         } else {
-            $this->_connection->onMessage = array($this, 'handleData');
-            $content_length = (int)$this->_response->getHeaderLine('Content-Length');
+            $this->connection->onMessage = array($this, 'handleData');
+            $content_length = (int)$this->response->getHeaderLine('Content-Length');
             if (!$content_length) {
                 // Wait close
-                $this->_connection->onClose = array($this, 'emitSuccess');
+                $this->connection->onClose = array($this, 'emitSuccess');
             } else {
-                $this->_expectedLength = $content_length;
+                $this->expectedLength = $content_length;
             }
-            $this->handleData($this->_connection, $body);
+            $this->handleData($this->connection, $body);
         }
     }
 
@@ -364,18 +409,18 @@ class Request extends \Workerman\Psr7\Request
      * @param $connection
      * @param $data
      */
-    public function handleData($connection, $data)
+    public function handleData($connection, $data): void
     {
         try {
-            $body = $this->_response->getBody();
-            $body->write($data);
-            if ($this->_expectedLength) {
-                $recv_length = $body->getSize();
-                if ($this->_expectedLength <= $recv_length) {
+            $body = $this->response->getBody();
+            $this->writeToResponse($data);
+            if ($this->expectedLength) {
+                $receive_length = $body->getSize();
+                if ($this->expectedLength <= $receive_length) {
                     $this->emitSuccess();
                 }
             }
-        } catch (\Exception $e) {
+        } catch (Throwable $e) {
             $this->emitError($e);
         }
     }
@@ -384,30 +429,29 @@ class Request extends \Workerman\Psr7\Request
      * @param $connection
      * @param $buffer
      */
-    public function handleChunkedData($connection, $buffer)
+    public function handleChunkedData($connection, $buffer): void
     {
         try {
-            if ($buffer) {
-                $this->_chunkedData .= $buffer;
+            if ($buffer !== '') {
+                $this->chunkedData .= $buffer;
             }
 
-            $recv_len = strlen($this->_chunkedData);
-            if ($recv_len < 2) {
+            $receive_len = strlen($this->chunkedData);
+            if ($receive_len < 2) {
                 return;
             }
             // Get chunked length
-            if ($this->_chunkedLength === 0) {
-                $crlf_position = strpos($this->_chunkedData, "\r\n");
-                if ($crlf_position === false && strlen($this->_chunkedData) > 1024) {
-                    $this->emitError(new \Exception('bad chunked length'));
+            if ($this->chunkedLength === 0) {
+                $crlf_position = strpos($this->chunkedData, "\r\n");
+                if (false === $crlf_position) {
+                    if (strlen($this->chunkedData) > 1024) {
+                        $this->emitError(new RuntimeException('bad chunked length'));
+                    }
                     return;
                 }
 
-                if ($crlf_position === false) {
-                    return;
-                }
-                $length_chunk = substr($this->_chunkedData, 0, $crlf_position);
-                if (strpos($crlf_position, ';') !== false) {
+                $length_chunk = substr($this->chunkedData, 0, $crlf_position);
+                if (str_contains($length_chunk, ';')) {
                     list($length_chunk) = explode(';', $length_chunk, 2);
                 }
                 $length = hexdec(ltrim(trim($length_chunk), "0"));
@@ -415,19 +459,19 @@ class Request extends \Workerman\Psr7\Request
                     $this->emitSuccess();
                     return;
                 }
-                $this->_chunkedLength = $length + 2;
-                $this->_chunkedData = substr($this->_chunkedData, $crlf_position + 2);
+                $this->chunkedLength = $length + 2;
+                $this->chunkedData = substr($this->chunkedData, $crlf_position + 2);
                 $this->handleChunkedData($connection, '');
                 return;
             }
             // Get chunked data
-            if ($recv_len >= $this->_chunkedLength) {
-                $this->_response->getBody()->write(substr($this->_chunkedData, 0, $this->_chunkedLength - 2));
-                $this->_chunkedData = substr($this->_chunkedData, $this->_chunkedLength);
-                $this->_chunkedLength = 0;
+            if ($receive_len >= $this->chunkedLength) {
+                $this->writeToResponse(substr($this->chunkedData, 0, $this->chunkedLength - 2));
+                $this->chunkedData = substr($this->chunkedData, $this->chunkedLength);
+                $this->chunkedLength = 0;
                 $this->handleChunkedData($connection, '');
             }
-        } catch (\Exception $e) {
+        } catch (Throwable $e) {
             $this->emitError($e);
         }
     }
@@ -435,75 +479,78 @@ class Request extends \Workerman\Psr7\Request
     /**
      * onError.
      */
-    public function onError($connection, $code, $msg)
+    public function onError($connection, $code, $msg): void
     {
-        $this->emitError(new \Exception("connection error code:$code $msg"));
+        $this->emitError(new RuntimeException($msg, $code));
     }
 
     /**
      * emitSuccess.
      */
-    public function emitSuccess()
+    public function emitSuccess(): void
     {
-        $this->emit('success', $this->_response);
+        $this->emit('success', $this->response);
     }
 
-    public function emitError($e)
+    public function emitError($e): void
     {
-        $this->_connection && $this->_connection->destroy();
-        $this->emit('error', $e);
+        try {
+            $this->emit('error', $e);
+        } finally {
+            $this->connection && $this->connection->destroy();
+        }
     }
 
     /**
-     * @param $request Request
-     * @param $response Response
-     * @return $this|bool
+     * redirect.
+     *
+     * @param Request $request
+     * @param Response $response
+     * @return bool|MessageInterface
      */
-    public static function redirect($request, $response)
+    public static function redirect(Request $request, Response $response): bool|MessageInterface
     {
-        if (substr($response->getStatusCode(), 0, 1) != '3'
+        $options = $request->getOptions();
+        if (!str_starts_with($response->getStatusCode(), '3')
             || !$response->hasHeader('Location')
+            || self::getMaxRedirects($options)
         ) {
             return false;
         }
-        $options = $request->getOptions();
-        self::guardMax($options);
-        $location = \Workerman\Psr7\UriResolver::resolve(
+        $location = UriResolver::resolve(
             $request->getUri(),
-            new \Workerman\Psr7\Uri($response->getHeaderLine('Location'))
+            new Uri($response->getHeaderLine('Location'))
         );
-        \Workerman\Psr7\rewind_body($request);
+        rewind_body($request);
 
-        $new_request = (new Request($location))->setOptions($options)->withBody($request->getBody());
-
-        return $new_request;
+        return (new Request($location))->setOptions($options)->withBody($request->getBody());
     }
 
-    private static function guardMax(array &$options)
+    /**
+     * @param array $options
+     * @return bool
+     */
+    private static function getMaxRedirects(array &$options): bool
     {
-        $current = isset($options['__redirect_count'])
-            ? $options['__redirect_count']
-            : 0;
+        $current = $options['__redirect_count'] ?? 0;
         $options['__redirect_count'] = $current + 1;
         $max = $options['allow_redirects']['max'];
 
-        if ($options['__redirect_count'] > $max) {
-            throw new \Exception("Too many redirects. will not follow more than {$max} redirects");
-        }
+        return $options['__redirect_count'] > $max;
     }
 
     /**
      * onUnexpectClose.
      */
-    public function onUnexpectClose()
+    public function onUnexpectClose(): void
     {
-        $this->emitError(new \Exception('Connection closed'));
+        $this->emitError(new RuntimeException('The connection to ' . $this->connection->getRemoteIp() . ' has been closed.'));
     }
 
     /**
      * @return int
      */
-    protected function getDefaultPort()
+    protected function getDefaultPort(): int
     {
         return ('https' === $this->getUri()->getScheme()) ? 443 : 80;
     }
@@ -513,38 +560,38 @@ class Request extends \Workerman\Psr7\Request
      *
      * @return void
      */
-    public function detachConnection()
+    public function detachConnection(): void
     {
         $this->cleanConnection();
         // 不是连接池的连接则断开
-        if ($this->_selfConnection) {
-            $this->_connection->close();
+        if ($this->selfConnection) {
+            $this->connection->close();
             return;
         }
-        $this->_writeable = true;
+        $this->writeable = true;
     }
 
     /**
-     * @return \Workerman\Connection\AsyncTcpConnection
+     * @return ?AsyncTcpConnection
      */
-    public function getConnection()
+    public function getConnection(): ?AsyncTcpConnection
     {
-        return $this->_connection;
+        return $this->connection;
     }
 
     /**
      * attachConnection.
      *
-     * @param $connection \Workerman\Connection\AsyncTcpConnection
+     * @param $connection AsyncTcpConnection
      * @return $this
      */
-    public function attachConnection($connection)
+    public function attachConnection(AsyncTcpConnection $connection): static
     {
         $connection->onConnect = array($this, 'onConnect');
         $connection->onMessage = array($this, 'onMessage');
         $connection->onError   = array($this, 'onError');
         $connection->onClose   = array($this, 'onUnexpectClose');
-        $this->_connection = $connection;
+        $this->connection = $connection;
 
         return $this;
     }
@@ -552,12 +599,12 @@ class Request extends \Workerman\Psr7\Request
     /**
      * cleanConnection.
      */
-    protected function cleanConnection()
+    protected function cleanConnection(): void
     {
-        $connection = $this->_connection;
+        $connection = $this->connection;
         $connection->onConnect = $connection->onMessage = $connection->onError =
         $connection->onClose = $connection->onBufferFull = $connection->onBufferDrain = null;
-        $this->_connection = null;
-        $this->_emitter->removeAllListeners();
+        $this->connection = null;
+        $this->emitter->removeAllListeners();
     }
 }

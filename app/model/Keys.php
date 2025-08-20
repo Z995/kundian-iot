@@ -2,6 +2,7 @@
 
 namespace app\model;
 
+use plugin\kundian\base\BaseModel;
 use think\Model;
 use support\Redis;
 
@@ -9,7 +10,7 @@ use support\Redis;
  * Class Model
  * @package think
  */
-class Keys extends Model
+class Keys extends BaseModel
 {
     const STATUS_NAME = [0 => '未启用', 1 => '已启用'];
     public function getIdAttr($value)

@@ -2,12 +2,13 @@
 // +----------------------------------------------------------------------
 // | ThinkPHP [ WE CAN DO IT JUST THINK ]
 // +----------------------------------------------------------------------
-// | Copyright (c) 2006~2019 http://thinkphp.cn All rights reserved.
+// | Copyright (c) 2006~2025 http://thinkphp.cn All rights reserved.
 // +----------------------------------------------------------------------
 // | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
+declare(strict_types=1);
 
 namespace think\db\connector;
 
@@ -15,13 +16,13 @@ use PDO;
 use think\db\PDOConnection;
 
 /**
- * Pgsql数据库驱动
+ * Pgsql数据库驱动.
  */
 class Pgsql extends PDOConnection
 {
-
     /**
-     * 默认PDO连接参数
+     * 默认PDO连接参数.
+     *
      * @var array
      */
     protected $params = [
@@ -32,9 +33,10 @@ class Pgsql extends PDOConnection
     ];
 
     /**
-     * 解析pdo连接的dsn信息
-     * @access protected
-     * @param  array $config 连接信息
+     * 解析pdo连接的dsn信息.
+     *
+     * @param array $config 连接信息
+     *
      * @return string
      */
     protected function parseDsn(array $config): string
@@ -49,16 +51,17 @@ class Pgsql extends PDOConnection
     }
 
     /**
-     * 取得数据表的字段信息
-     * @access public
-     * @param  string $tableName
+     * 取得数据表的字段信息.
+     *
+     * @param string $tableName
+     *
      * @return array
      */
     public function getFields(string $tableName): array
     {
         [$tableName] = explode(' ', $tableName);
-        $sql         = 'select fields_name as "field",fields_type as "type",fields_not_null as "null",fields_key_name as "key",fields_default as "default",fields_default as "extra" from table_msg(\'' . $tableName . '\');';
 
+        $sql    = 'select fields_name as "field",fields_type as "type",fields_not_null as "null",fields_key_name as "key",fields_default as "default",fields_default as "extra",fields_comment as "comment" from table_msg(\'' . $tableName . '\');';
         $pdo    = $this->getPDOStatement($sql);
         $result = $pdo->fetchAll(PDO::FETCH_ASSOC);
         $info   = [];
@@ -73,7 +76,8 @@ class Pgsql extends PDOConnection
                     'notnull' => (bool) ('' !== $val['null']),
                     'default' => $val['default'],
                     'primary' => !empty($val['key']),
-                    'autoinc' => (0 === strpos($val['extra'], 'nextval(')),
+                    'autoinc' => str_starts_with((string) $val['extra'], 'nextval('),
+                    'comment' => $val['comment'],
                 ];
             }
         }
@@ -82,9 +86,10 @@ class Pgsql extends PDOConnection
     }
 
     /**
-     * 取得数据库的表信息
-     * @access public
-     * @param  string $dbName
+     * 取得数据库的表信息.
+     *
+     * @param string $dbName
+     *
      * @return array
      */
     public function getTables(string $dbName = ''): array

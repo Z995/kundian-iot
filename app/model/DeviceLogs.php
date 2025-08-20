@@ -2,6 +2,7 @@
 
 namespace app\model;
 
+use plugin\kundian\base\BaseModel;
 use think\Model;
 use support\Redis;
 
@@ -9,7 +10,7 @@ use support\Redis;
  * Class Model
  * @package think
  */
-class DeviceLogs extends Model
+class DeviceLogs extends BaseModel
 {
     public function getIdAttr($value)
     {

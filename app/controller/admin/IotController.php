@@ -10,23 +10,16 @@
 
 namespace app\controller\admin;
 
-use app\model\DeviceLogs;
-use app\model\Iot;
-use app\model\WebhookLogs;
-use app\services\ModbusRTUServices;
-use app\services\RedisServices;
-use extend\Debug;
-use extend\Helper;
-use support\Redis;
-use extend\Page;
-use extend\Request;
-use support\View;
+use plugin\kundian\base\BaseController;
+use think\exception\ValidateException;
 
-class IotController
+
+class IotController extends BaseController
 {
     public function index()
     {
-        return json([122]);
+        var_dump($this->getAdminInfo());
+        return success([122]);
     }
 
 }

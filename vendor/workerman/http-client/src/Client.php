@@ -13,15 +13,20 @@
  */
 namespace Workerman\Http;
 
+use Exception;
+use RuntimeException;
+use Throwable;
+use Workerman\Coroutine\Channel;
+use Workerman\Coroutine;
+use Workerman\Timer;
 
 /**
  * Class Http\Client
  * @package Workerman\Http
  */
+#[\AllowDynamicProperties]
 class Client
 {
-    const VERSION = '0.1.6';
-
     /**
      *
      *[
@@ -37,21 +42,25 @@ class Client
      * ]
      * @var array
      */
-    protected $_queue = array();
+    protected array $queue = [];
 
     /**
-     * @var array
+     * @var ?ConnectionPool
      */
-    protected $_connectionPool = null;
+    protected ?ConnectionPool $_connectionPool = null;
+
+    protected Channel $locker;
 
     /**
      * Client constructor.
+     *
      * @param array $options
      */
-    public function __construct($options = [])
+    public function __construct(array $options = [])
     {
         $this->_connectionPool = new ConnectionPool($options);
         $this->_connectionPool->on('idle', array($this, 'process'));
+        $this->locker = new Channel(1);
     }
 
     /**
@@ -59,14 +68,47 @@ class Client
      *
      * @param $url string
      * @param array $options ['method'=>'get', 'data'=>x, 'success'=>callback, 'error'=>callback, 'headers'=>[..], 'version'=>1.1]
-     * @return void
+     * @return mixed|Response
+     * @throws Throwable
      */
-    public function request($url, $options = [])
+    public function request(string $url, array $options = []): mixed
     {
-        $address = $this->parseAddress($url, $options);
         $options['url'] = $url;
-        $this->queuePush($address, ['url' => $url, 'address' => $address, 'options' => $options]);
-        $this->process($address);
+        $suspend = false;
+        $isCoroutine = !isset($options['success']) && Coroutine::isCoroutine();
+        if ($isCoroutine) {
+            $options['is_coroutine'] = true;
+            $result = $exception = null;
+            $coroutine = Coroutine::getCurrent();
+            $options['success'] = function ($response) use ($coroutine, &$result, &$suspend) {
+                $result = $response;
+                $suspend && $coroutine->resume();
+            };
+            $options['error'] = function ($throwable) use ($coroutine, &$exception, &$suspend) {
+                $exception = $throwable;
+                $suspend && $coroutine->resume();
+            };
+        }
+        try {
+            $address = $this->parseAddress($url);
+            $this->queuePush($address, ['url' => $url, 'address' => $address, 'options' => $options]);
+            $this->process($address);
+        } catch (Throwable $exception) {
+            $this->deferError($options, $exception);
+            if ($isCoroutine) {
+                throw $exception;
+            }
+            return null;
+        }
+        if ($isCoroutine) {
+            $suspend = true;
+            $coroutine->suspend();
+            if ($exception) {
+                throw $exception;
+            }
+            return $result;
+        }
+        return null;
     }
 
     /**
@@ -75,8 +117,10 @@ class Client
      * @param $url
      * @param null $success_callback
      * @param null $error_callback
+     * @return mixed|Response
+     * @throws Throwable
      */
-    public function get($url, $success_callback = null, $error_callback = null)
+    public function get($url, $success_callback = null, $error_callback = null): mixed
     {
         $options = [];
         if ($success_callback) {
@@ -85,26 +129,20 @@ class Client
         if ($error_callback) {
             $options['error'] = $error_callback;
         }
-        $address = $this->parseAddress($url, $options);
-        $task = [
-            'url'      => $url,
-            'options'  => $options,
-            'address'  => $address,
-        ];
-        $this->queuePush($address, $task);
-        $this->process($address);
+        return $this->request($url, $options);
     }
 
     /**
      * Post.
      *
      * @param $url
-     * @param $data
+     * @param array $data
      * @param null $success_callback
      * @param null $error_callback
-     * @return bool
+     * @return mixed|Response
+     * @throws Throwable
      */
-    public function post($url, $data = [], $success_callback = null, $error_callback = null)
+    public function post($url, $data = [], $success_callback = null, $error_callback = null): mixed
     {
         $options = [];
         if ($data) {
@@ -117,44 +155,47 @@ class Client
             $options['error'] = $error_callback;
         }
         $options['method'] = 'POST';
-        $address = $this->parseAddress($url, $options);
-        $task = [
-            'url'      => $url,
-            'options'  => $options,
-            'address'  => $address
-        ];
-        $this->queuePush($address, $task);
-        $this->process($address);
+        return $this->request($url, $options);
     }
 
     /**
      * Process.
      * User should not call this.
      *
+     * @param $address
      * @return void
+     * @throws Exception
      */
-    public function process($address)
+    public function process($address): void
     {
+        $this->locker->push(true);
         $task = $this->queueCurrent($address);
         if (!$task) {
+            $this->locker->pop();
             return;
         }
 
         $url = $task['url'];
         $address = $task['address'];
-        $connection = $this->_connectionPool->fetch($address, strpos($url, 'https') === 0);
 
+        $connection = $this->_connectionPool->fetch($address, strpos($url, 'https') === 0, $task['options']['proxy'] ?? '');
         // No connection is in idle state then wait.
         if (!$connection) {
+            $this->locker->pop();
             return;
         }
 
+        $connection->errorHandler = function(Throwable $exception) use ($task) {
+            $this->deferError($task['options'], $exception);
+        };
         $this->queuePop($address);
+        $this->locker->pop();
         $options = $task['options'];
         $request = new Request($url);
-        $data = isset($options['data']) ? $options['data'] : '';
+        $data = $options['data'] ?? '';
         if ($data || $data === '0' || $data === 0) {
-            if (isset($options['method']) && (strtoupper($options['method']) === 'POST' || strtoupper($options['method']) === 'PUT' || strtoupper($options['method']) === 'PATCH' || strtoupper($options['method']) === 'DELETE')) {
+            $method = isset($options['method']) ? strtoupper($options['method']) : null;
+            if (in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'])) {
                 $request->write($options['data']);
             } else {
                 $options['query'] = $data;
@@ -163,14 +204,12 @@ class Client
         $request->setOptions($options)->attachConnection($connection);
 
         $client = $this;
-        $request->on('success', function($response) use ($task, $client, $request) {
+        $request->once('success', function($response) use ($task, $client, $request) {
             $client->recycleConnectionFromRequest($request, $response);
             try {
                 $new_request = Request::redirect($request, $response);
-            } catch (\Exception $exception) {
-                if (!empty($task['options']['error'])) {
-                    call_user_func($task['options']['error'], $exception);
-                }
+            } catch (Exception $exception) {
+                $this->deferError($task['options'], $exception);
                 return;
             }
             // No redirect.
@@ -185,7 +224,13 @@ class Client
             $uri = $new_request->getUri();
             $url = (string)$uri;
             $options = $new_request->getOptions();
-            $address = $this->parseAddress($url, $options);
+            // According to RFC 7231, for HTTP status codes 301, 302, or 303, the client should switch the request
+            // method to GET and remove any payload data
+            if (in_array($response->getStatusCode(), [301, 302, 303])) {
+                $options['method'] = 'GET';
+                $options['data'] = NULL;
+            }
+            $address = $this->parseAddress($url);
             $task = [
                 'url'      => $url,
                 'options'  => $options,
@@ -193,12 +238,14 @@ class Client
             ];
             $this->queueUnshift($address, $task);
             $this->process($address);
-        })->on('error', function($exception) use ($task, $client, $request) {
+        })->once('error', function($exception) use ($task, $client, $request) {
             $client->recycleConnectionFromRequest($request);
-            if (!empty($task['options']['error'])) {
-                call_user_func($task['options']['error'], $exception);
-            }
+            $this->deferError($task['options'], $exception);
         });
+
+        if (isset($options['progress'])) {
+            $request->on('progress', $options['progress']);
+        }
 
         $state = $connection->getStatus(false);
         if ($state === 'CLOSING' || $state === 'CLOSED') {
@@ -217,9 +264,9 @@ class Client
      * Recycle connection from request.
      *
      * @param $request Request
-     * @param $response Response
+     * @param $response Response|null
      */
-    public function recycleConnectionFromRequest($request, $response = null)
+    public function recycleConnectionFromRequest(Request $request, ?Response $response = null): void
     {
         $connection = $request->getConnection();
         if (!$connection) {
@@ -240,19 +287,15 @@ class Client
      * Parse address from url.
      *
      * @param $url
-     * @param $options
      * @return string
      */
-    protected function parseAddress($url, $options)
+    protected function parseAddress($url): string
     {
         $info = parse_url($url);
         if (empty($info) || !isset($info['host'])) {
-            $e = new \Exception("invalid url: $url");
-            if (!empty($options['error'])) {
-                call_user_func($options['error'], $e);
-            }
+            throw new RuntimeException("invalid url: $url");
         }
-        $port = isset($info['port']) ? $info['port'] : (strpos($url, 'https') === 0 ? 443 : 80);
+        $port = $info['port'] ?? (str_starts_with($url, 'https') ? 443 : 80);
         return "tcp://{$info['host']}:{$port}";
     }
 
@@ -262,12 +305,12 @@ class Client
      * @param $address
      * @param $task
      */
-    protected function queuePush($address, $task)
+    protected function queuePush($address, $task): void
     {
-        if (!isset($this->_queue[$address])) {
-            $this->_queue[$address] = [];
+        if (!isset($this->queue[$address])) {
+            $this->queue[$address] = [];
         }
-        $this->_queue[$address][] = $task;
+        $this->queue[$address][] = $task;
     }
 
     /**
@@ -276,12 +319,12 @@ class Client
      * @param $address
      * @param $task
      */
-    protected function queueUnshift($address, $task)
+    protected function queueUnshift($address, $task): void
     {
-        if (!isset($this->_queue[$address])) {
-            $this->_queue[$address] = [];
+        if (!isset($this->queue[$address])) {
+            $this->queue[$address] = [];
         }
-        $this->_queue[$address] += [$task];
+        $this->queue[$address] += [$task];
     }
 
     /**
@@ -290,13 +333,13 @@ class Client
      * @param $address
      * @return mixed|null
      */
-    protected function queueCurrent($address)
+    protected function queueCurrent($address): mixed
     {
-        if (empty($this->_queue[$address])) {
+        if (empty($this->queue[$address])) {
             return null;
         }
-        reset($this->_queue[$address]);
-        return current($this->_queue[$address]);
+        reset($this->queue[$address]);
+        return current($this->queue[$address]);
     }
 
     /**
@@ -304,11 +347,30 @@ class Client
      *
      * @param $address
      */
-    protected function queuePop($address)
+    protected function queuePop($address): void
     {
-        unset($this->_queue[$address][key($this->_queue[$address])]);
-        if (empty($this->_queue[$address])) {
-            unset($this->_queue[$address]);
+        unset($this->queue[$address][key($this->queue[$address])]);
+        if (empty($this->queue[$address])) {
+            unset($this->queue[$address]);
+        }
+    }
+
+    /**
+     * @param $options
+     * @param $exception
+     * @return void
+     */
+    protected function deferError($options, $exception): void
+    {
+        if ($options['is_coroutine'] ?? false) {
+            if ($options['error']) {
+                call_user_func($options['error'], $exception);
+                return;
+            }
+            throw $exception;
+        }
+        if (isset($options['error'])) {
+            Timer::add(0.000001, $options['error'], [$exception], false);
         }
     }
 }

@@ -8,8 +8,8 @@ use app\model\Keys;
 use extend\Request;
 use support\Log;
 use extend\RedisQueue;
-use extend\Page;
 use app\validate\api\ApiValidate;
+use plugin\webman\gateway\Events;
 
 class ApiController
 {
@@ -36,8 +36,7 @@ class ApiController
             return json(['code' => 1, 'msg' => 'api_key不存在']);
         }
         //判断设备是否在线
-        $redis = myRedis();
-        if (!$redis->hExists('HFiots-online', $data['device_code'])) {
+        if (!Events::isOnlineByUid($data['device_code'])) {
             return json(['code' => 1, 'msg' => '设备不在线']);
         }
         try {
@@ -132,6 +131,10 @@ class ApiController
     }
     public function mqtt()
     {
+        //安全校验请自行设计
+
+
+        //获取请求参数
         $param = Request::param();
         //success,normal
         //not_authorized bad_username_or_password
@@ -139,6 +142,7 @@ class ApiController
             return $param['reason_code'];
         }
         $param['index'] = genreId('mqtt');
+        //发送mqtt消息
         RedisQueue::queue('iots_redis_queue_mqtt_api', $param);
     }
     //获取设备在线状态
@@ -150,21 +154,24 @@ class ApiController
         if (!$validate->scene('getDeviceOnline')->check($data)) {
             return json(['code' => 1, 'msg' => $validate->getError()]);
         }
-        //准备入库
+        //查询设备信息
         $iot = Iot::where([['code', '=', $data['device_code']], ['del', '=', 0]])->findOrEmpty()->toArray();
         if (!$iot) {
             return json(['code' => 1, 'msg' => '设备自定义注册包不存在']);
         }
+        //查询api_key
         $keys = Keys::where([['api_key', '=', $data['api_key']], ['del', '=', 0]])->findOrEmpty()->toArray();
         if (!$keys) {
             return json(['code' => 1, 'msg' => 'api_key不存在']);
         }
         //判断设备是否在线
-        $redis = myRedis();
-        if ($redis->hExists('HFiots-online', $data['device_code'])) {
-            return json(['code' => 0, 'msg' => '设备在线', 'data' => 1]);
+        $online = 0;
+        if ($iot['type'] == 2) {
+            $redis = myRedis();
+            $online = $redis->hGet('HFiots-online', $data['device_code']) ? 1 : 0;
         } else {
-            return json(['code' => 0, 'msg' => '设备不在线', 'data' => 0]);
+            $online = Events::isOnlineByUid($data['device_code']);
         }
+        return json(['code' => 0, 'msg' => $online ? '设备在线' : '设备不在线', 'data' => $online]);
     }
 }

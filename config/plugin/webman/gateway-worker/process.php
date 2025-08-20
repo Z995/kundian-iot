@@ -16,12 +16,12 @@ return [
     'gateway_tcp' => [
         'handler'     => Gateway::class,
         'listen'      => 'tcp://0.0.0.0:' . config('plugin.webman.gateway-worker.app.tcp_port'),
-        'count'       => cpu_count() * 4,
+        'count'       => cpu_count(),
         'reloadable'  => false,
         'constructor' => ['config' => [
             'lanIp'           => '127.0.0.1',
             'startPort'       => 2300,
-            'pingInterval'    => 55,
+            'pingInterval'    => 61,
             'pingData'        => '',
             'pingNotResponseLimit' => 1,
             'registerAddress' => '127.0.0.1:1236'
@@ -30,12 +30,12 @@ return [
     'gateway_ws' => [
         'handler'     => Gateway::class,
         'listen'      => 'websocket://0.0.0.0:' . config('plugin.webman.gateway-worker.app.ws_port'),
-        'count'       => cpu_count() * 4,
+        'count'       => cpu_count(),
         'reloadable'  => false,
         'constructor' => ['config' => [
             'lanIp'           => '127.0.0.1',
             'startPort'       => 2500,
-            'pingInterval'    => 55,
+            'pingInterval'    => 61,
             'pingData'        => '',
             'pingNotResponseLimit' => 1,
             'registerAddress' => '127.0.0.1:1236',
@@ -46,12 +46,12 @@ return [
     'gateway_wss' => [
         'handler'     => Gateway::class,
         'listen'      => 'websocket://0.0.0.0:' . config('plugin.webman.gateway-worker.app.wss_port'),
-        'count'       => cpu_count() * 4,
+        'count'       => cpu_count(),
         'reloadable'  => false,
         'constructor' => ['config' => [
             'lanIp'           => '127.0.0.1',
             'startPort'       => 2700,
-            'pingInterval'    => 55,
+            'pingInterval'    => 61,
             'pingData'        => '',
             'pingNotResponseLimit' => 1,
             'registerAddress' => '127.0.0.1:1236',
@@ -75,7 +75,7 @@ return [
         'constructor' => ['config' => [
             'lanIp'           => '127.0.0.1',
             'startPort'       => 2800,
-            'pingInterval'    => 55,
+            'pingInterval'    => 61,
             'pingData'        => '',
             'pingNotResponseLimit' => 1,
             'registerAddress' => '127.0.0.1:1236',
@@ -85,7 +85,7 @@ return [
     ],
     'worker' => [
         'handler'     => BusinessWorker::class,
-        'count'       => cpu_count() * 2,
+        'count'       => cpu_count() * 4,
         'constructor' => ['config' => [
             'eventHandler'    => plugin\webman\gateway\Events::class,
             'name'            => 'ChatBusinessWorker',

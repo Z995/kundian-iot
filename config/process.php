@@ -19,6 +19,7 @@ return [
     'monitor' => [
         'handler' => process\Monitor::class,
         'reloadable' => false,
+        'eventLoop' => Workerman\Events\Fiber::class,
         'constructor' => [
             // Monitor these directories
             'monitor_dir' => array_merge([
@@ -38,5 +39,20 @@ return [
                 'enable_memory_monitor' => DIRECTORY_SEPARATOR === '/',
             ]
         ]
-    ]
+    ],
+//    'MqttClient' => [
+//        'handler' => process\MqttClient::class,
+//        'listen'  => 'Text://0.0.0.0:' . config('plugin.webman.gateway-worker.app.mqtt_client_port'),
+//        'count'   => 1,
+//        'reloadable' => true, // 是否支持重载
+//        'reusePort' => true
+//    ],
+    'task'  => [
+        'handler'  => app\process\DeviceStatus::class
+    ],
+    'AutoWorkTimer'  => [
+        'handler'  => app\process\AutoWorkTimer::class
+    ],
+
+
 ];

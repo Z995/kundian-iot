@@ -10,6 +10,7 @@
 
 namespace app\queue\redis\fast;
 
+use app\model\gateway\Gateway;
 use app\model\Iot;
 use extend\RedisQueue;
 use Webman\RedisQueue\Consumer;
@@ -44,13 +45,13 @@ class MqttApi implements Consumer
         try {
             $username = $param['username'];
             $clientid = $param['clientid'];
-            $info = Iot::where([['username', '=', $username], ['code', '=', $clientid], ['del', '=', 0]])->findOrEmpty()->toArray();
+            $info = Gateway::where([['username', '=', $username], ['code', '=', $clientid], ['del', '=', 0]])->findOrEmpty()->toArray();
             if (!$info) {
                 Log::channel($this->logFile)->error('MqttApi消费失败：', ['package' => $param, 'error' => '设备不存在']);
                 return;
             }
             switch ($param['event']) {
-                    //设备连接
+                //设备连接
                 case 'client.connack':
                     //获取上次的index
                     $lastCodeIndex = $redis->get('HFiots-Code-Index-' . $info['code']);
@@ -76,7 +77,7 @@ class MqttApi implements Consumer
                     ];
                     fwrite($client, json_encode($my, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n");
                     break;
-                    //设备断开连接
+                //设备断开连接
                 case 'client.disconnected':
                     //获取上次的index
                     $lastCodeIndex = $redis->get('HFiots-Code-Index-' . $info['code']);
@@ -87,7 +88,7 @@ class MqttApi implements Consumer
                     //设置sid,并且设置过期时间60s
                     $redis->setex('HFiots-Code-Index-' . $info['code'], $param['index'], 5);
                     //设置设备离线
-                    $redis->hDel('HFiots-online', $info['code']);
+                    $redis->hSet('HFiots-online', $info['code'], 0);
                     //推送会员告知设备离线
                     $client = stream_socket_client('tcp://' . config('plugin.webman.gateway-worker.app.ip') . ':' . config('plugin.webman.gateway-worker.app.text_port'));
                     if (!$client) {
@@ -100,16 +101,18 @@ class MqttApi implements Consumer
                     ];
                     fwrite($client, json_encode($my, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n");
                     break;
-                    //发布消息
+                //发布消息
                 case 'message.publish':
                     //添加队列存储数据
-                    RedisQueue::queue('iots_redis_queue_device_logs', [
-                        'type' => $info['type'],
-                        'from' => $info['code'],
-                        'topic' => $param['topic'],
-                        'msg' => $param['payload'],
-                        'time' => date('Y-m-d H:i:s')
-                    ]);
+                    if (isset($info['log']) && $info['log'] == 1) {
+                        RedisQueue::queue('iots_redis_queue_device_logs', [
+                            'type' => $info['type'],
+                            'from' => $info['code'],
+                            'topic' => $param['topic'],
+                            'msg' => $param['payload'],
+                            'time' => date('Y-m-d H:i:s')
+                        ]);
+                    }
                     //该设备是否有http
                     //需http发送,添加队列
                     $httpClient = array_filter(array_unique(explode(',', $info['http'])));
@@ -141,6 +144,24 @@ class MqttApi implements Consumer
                                 't' => date('Y-m-d H:i:s')
                             ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), //消息内容
                             'eol' => 0 //0不加换行 1加换行
+                        ];
+                        fwrite($client, json_encode($my, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n");
+                    }
+                    //如果该设备显示离线，更新为在线
+                    if (!$redis->hExists('HFiots-online', $info['code']) || $redis->hGet('HFiots-online', $info['code']) == 0) {
+                        //设置设备在线
+                        $redis->hSet('HFiots-online', $info['code'], 1);
+                        //设置最后一次在线时间
+                        Redis::hSet('HFiots-last-online', $info['code'], date('Y-m-d H:i:s'));
+                        //推送会员告知设备上线
+                        $client = stream_socket_client('tcp://' . config('plugin.webman.gateway-worker.app.ip') . ':' . config('plugin.webman.gateway-worker.app.text_port'));
+                        if (!$client) {
+                            throw new \Exception('连接服务失败,请重试');
+                        }
+                        $my = [
+                            'from' => config('plugin.webman.gateway-worker.app.super_code'),
+                            'action' => 'pushMqttDeviceOnline', //通知mqtt设备上线
+                            'code' => $info['code'], //上线的设备code
                         ];
                         fwrite($client, json_encode($my, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n");
                     }

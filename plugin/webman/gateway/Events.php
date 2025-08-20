@@ -11,9 +11,15 @@
 namespace plugin\webman\gateway;
 
 use app\model\Iot;
-use app\services\RedisServices;
+use app\serve\HeartbeatFilter;
+use app\serve\RedisServices;
+use \app\model\gateway\Gateway as GatewayModel;
+use app\services\gateway\GatewayOnlineLogServices;
 use extend\RedisQueue;
 use GatewayWorker\Lib\Gateway;
+use plugin\webman\gateway\servers\LoginServices;
+use plugin\webman\gateway\servers\SortingDataServices;
+use plugin\webman\gateway\servers\TimeServices;
 use support\Log;
 use support\Redis;
 use Workerman\Timer;
@@ -25,6 +31,8 @@ class Events
     static $WSS_PORT = ''; //wss端口
     static $TEXT_PORT = ''; //TEXT端口
     static $MAIN_CODE = ''; //超级权限uid
+    static $SUPER_ADMIN_ID = ''; //超级管理员ID
+
     public static function onWorkerStart($worker)
     {
         self::$TCP_PORT = config('plugin.webman.gateway-worker.app.tcp_port');
@@ -32,10 +40,15 @@ class Events
         self::$WSS_PORT = config('plugin.webman.gateway-worker.app.wss_port');
         self::$TEXT_PORT = config('plugin.webman.gateway-worker.app.text_port');
         self::$MAIN_CODE = config('plugin.webman.gateway-worker.app.super_code');
+        self::$SUPER_ADMIN_ID = config('plugin.webman.gateway-worker.app.super_admin_id');
     }
+
     public static function onMessage($client_id, $message)
     {
         try {
+            if ($message=="0000"){
+                return  false;
+            }
             //TCP协议 websocket
             if (in_array($_SERVER['GATEWAY_PORT'], [self::$TCP_PORT, self::$WS_PORT, self::$WSS_PORT])) {
                 //首先判断该clientId是否第一次链接
@@ -43,44 +56,18 @@ class Events
 
                 //第一次连接
                 if (!$uid) {
-                    //如果是MAIN_CODE,那么给他绑定uid
-                    if ($message == self::$MAIN_CODE) {
-                        if (!in_array($_SERVER['GATEWAY_PORT'], [self::$WS_PORT, self::$WSS_PORT])) {
-                            Gateway::sendToClient($client_id, 'connect fail,please use ws protocol or wss protocol');
-                            Gateway::closeClient($client_id);
-                            return;
-                        }
-                        $myUid = self::$MAIN_CODE . '-Uid';
-                        Gateway::bindUid($client_id, $myUid);
-                        Gateway::sendToClient($client_id, 'connet success');
-                        //存个session
-                        $_SESSION['uid'] = $myUid;
-                        return;
+                    $type = LoginServices::judgeLogin($message);
+                    if ($type == "admin") {
+                        LoginServices::adminLogin($client_id, $message);
+                        return true;
                     }
-                    //有些设备的注册包是HEX类型,所以需要转换
-                    if (!Redis::hExists('HFiots', $message)) {
-                        $original_message=$message;
-                        $message = bin2hex($message);
-
-                        if (!Redis::hExists('HFiots', $message)){ //重新缓存
-                            $iot = Iot::where([['code', '=',$original_message]])->find()->toArray();
-                            if (!$iot){
-                                $iot = Iot::where([['code', '=',$message]])->find()->toArray();
-                            }else{
-                                $message=$original_message;
-                            }
-                            if (!empty($iot)&&$iot['type'] != 2) {
-                                $redis=new RedisServices();
-                                $redis->setHFiotsRedis($iot);
-                                $redis->setHFiotsFilterRedis($iot['code'], $iot["filter"]);
-                            }
-                        }
-
+                    if ($type == "device") {
+                        $message = LoginServices::getIotKey($message);
+                        if ($message === false) return true;
                     }
 
-
-                    if (Redis::hExists('HFiots', $message)) {
-                        $my = jsonDecode(Redis::hGet('HFiots', $message), true);
+                    if (RedisServices::isGatewayRedis($message)) {
+                        $my = RedisServices::getGatewayRedis($message);
                         //单点登录还是多点登录
                         $myUid = $my['uid'];
                         //单点登录
@@ -109,196 +96,36 @@ class Events
                                 Gateway::sendToClient($client_id, self::myHexTobin($myRecode));
                             }
                         }
-                        //定时器
-                        //定时任务是否存在
-                        $crontab = jsonDecode(Redis::hGet('HFiots-crontab', $message), true);
-                        if ($crontab && $crontab['val'] && $crontab['status'] == 1) {
-                            //1 => 1秒1次, 2 => 0.5秒1次, 3 => 60秒1次, 4 => 30秒1次, 5 => 3秒1次, 6 => 10秒1次, 7 => 10分钟一次, 8 => 60分钟1次
-                            $timeArr = array(1 => 1, 2 => 0.5, 3 => 60, 4 => 30, 5 => 3, 6 => 10, 7 => 600, 8 => 3600);
-                            if (isset($timeArr[$crontab['times']])) {
-                                $_SESSION['timerId'] = Timer::add($timeArr[$crontab['times']], function () use ($client_id, $crontab, $my) {
-                                    //数据来源,自定义数据类型,指令是按顺序依次发送,防止指令频繁发送导致设备无法响应
-                                    //自定义数据
-                                    if ($crontab['type'] == 0) {
-                                        $rval = explode(',', $crontab['val']);
-                                        if ($rval) {
-                                            $rkey = 0; //当前应该发送的排序
-                                            $myMessage = str_replace('-Uid', '', $my['uid']);
-                                            if (Redis::exists('HFiotskey-' . $myMessage)) {
-                                                $rkey = Redis::get('HFiotskey-' . $myMessage);
-                                                if ($rkey > count($rval) - 1) {
-                                                    $rkey = 0;
-                                                }
-                                            }
-                                            $va = $crontab['vtype'] == 0 ? $rval[$rkey] : self::myHexTobin($rval[$rkey]);
-                                            Gateway::sendToClient($client_id, $va);
-                                            $rkey += 1;
-                                            Redis::set('HFiotskey-' . $myMessage, $rkey);
-                                        }
-                                    }
-                                    //redis队列
-                                    if ($crontab['type'] == 1) {
-                                        //内容
-                                        $myVal = explode(',', $crontab['val']);
-                                        if ($myVal) {
-                                            ////查看本连接是TCP还是websocket,如果TCP,那么依次透传.如果是websocket,那么组成数组后传输.
-                                            //发送的内容
-                                            $res = array();
-                                            foreach ($myVal as $ke => $va) {
-                                                $myRes = '';
-                                                $nva = explode(':', $va); //根据:分割数组
-                                                //string类型
-                                                if (count($nva) == 1) {
-                                                    $myRes = Redis::get($nva[0]);
-                                                }
-                                                //list类型
-                                                if (count($nva) == 2) {
-                                                    $myRes = Redis::hGet($nva[0], $nva[1]);
-                                                }
-                                                //HEX类型
-                                                if ($crontab['vtype'] == 1) {
-                                                    $myRes = self::myHexTobin($myRes);
-                                                }
-                                                //TCP
-                                                if ($my['type'] == 0) {
-                                                    Gateway::sendToClient($client_id, $myRes);
-                                                }
-                                                //websocket
-                                                if ($my['type'] == 1) {
-                                                    $res[] = array($va => $myRes);
-                                                }
-                                            }
-                                            //websocket
-                                            if ($my['type'] == 1) {
-                                                $arr = array('k' => 'crontab', 'v' => $res, 't' => date('Y-m-d H:i:s'));
-                                                Gateway::sendToClient($client_id, json_encode($arr, JSON_UNESCAPED_UNICODE));
-                                            }
-                                        }
-                                    }
-                                });
-                            }
-                        }
-                        //增加一个默认的定时器,用于给TCP客户端发送消息,使用redis队列,每秒执行一次
-                        if ($_SERVER['GATEWAY_PORT'] == self::$TCP_PORT) {
-                            //先清空之前的记录
-                            Redis::del('HFiots-' . $message . '-Default-Crontab');
-                            $_SESSION['timerDefaultId'] = Timer::add(1, function () use ($client_id, $message) {
-                                $myVal = Redis::lindex('HFiots-' . $message . '-Default-Crontab', 0);
-                                if ($myVal) {
-                                    $myVal = json_decode($myVal, true);
-                                    if (is_array($myVal)) {
-                                        $myRes = $myVal['val'];
-                                        ////查看本连接是TCP还是websocket,如果TCP,那么依次透传.如果是websocket,那么组成数组后传输.
-                                        //发送的内容//HEX类型
-                                        if ($myVal['vtype'] == 1) {
-                                            $myRes = self::myHexTobin($myRes);
-                                        }
-                                        if ($myRes) {
-                                            Gateway::sendToClient($client_id, $myRes);
-                                        }
-                                    }
-                                    Redis::lPop('HFiots-' . $message . '-Default-Crontab');
-                                }
-                            });
-                        }
-                        //设置在线状态
-                        Redis::hSet('HFiots-online', $message, 1);
+                        //kd 定时器
+                        TimeServices::createTimer($client_id, $message);
                         //推送在线状态
-                        self::pushDeviceIsOnlineToMember($message, 1);
-
-                        return;
+                        self::pushDeviceIsOnlineToMember($message, self::isOnlineByUid($message));
+                        return true;
                     }
                     //设备不存在
                     Gateway::sendToClient($client_id, 'device not exist');
                     Gateway::closeClient($client_id);
-                    return;
+                    return true;
                 } else {
+                    $myKey = str_replace('-Uid', '', $uid);
                     //TCP协议
                     if ($_SERVER['GATEWAY_PORT'] == self::$TCP_PORT) {
-                        //查询该链接的UID
-                        $myStr = '';
-                        $myKey = str_replace('-Uid', '', $uid);
-                        $my = jsonDecode(Redis::hGet('HFiots', $myKey), true);
-                        //存储数据 HEX类型
-                        if ($my['vtype'] == 1) {
-                            $myStr = bin2hex($message);
-                        } else {
-                            $myStr = $message;
+                        if (SortingDataServices::isAscii($message)) {
+                            $message = bin2hex($message);
                         }
-                        //数据过滤
-                        $ok = self::checkFilter($myKey, $myStr);
-                        if ($ok) {
-                            //需要存储
-                            if ($my['val']) {
-                                $myVal = explode(':', $my['val']);
-                                //string类型
-                                if (count($myVal) == 1) {
-                                    Redis::set($my['val'], $myStr);
-                                    //记录时间
-                                    Redis::set($my['val'] . '-time', date('Y-m-d H:i:s'));
-                                }
-                                //list类型
-                                if (count($myVal) == 2) {
-                                    $myArr = jsonDecode($myStr, true);
-                                    if ($myArr) {
-                                        foreach ($myArr as $k => $v) {
-                                            $childArr = jsonDecode($v, true);
-                                            if ($childArr) {
-                                                $myArr[$k] = $childArr;
-                                            }
-                                        }
-                                    }
-                                    $myArr = $myArr ? $myArr : $myStr;
-                                    $arr = array('val' => $myArr, 'time' => date('Y-m-d H:i:s'));
-                                    Redis::rpush($myVal[1], json_encode($arr, JSON_UNESCAPED_UNICODE));
-                                }
-                            }
-                            //客户端需转发
-                            $forward = explode(',', $my['forward']);
-
-                            $forward[] = self::$MAIN_CODE; //web前端链接
-                            $uidArray = [];
-                            //获取对应的clientId
-                            foreach ($forward as $k => $v) {
-                                if (!empty($v)){
-                                    $uidArray[] = $v . '-Uid';
-                                }
-                            }
-                            $arr = array('k' => $myKey, 'v' => $myStr, 't' => date('Y-m-d H:i:s'));
-                            Gateway::sendToUid($uidArray, json_encode($arr, JSON_UNESCAPED_UNICODE));
-                            //需http发送,添加队列
-                            $httpClient = array_filter(array_unique(explode(',', $my['http'])));
-                            foreach ($httpClient as $v) {
-                                RedisQueue::queue('iots_redis_queue_http_api', [
-                                    'type' => $my['type'],
-                                    'url' => $v,
-                                    'vtype' => $my['vtype'],
-                                    'msg' => $myStr,
-                                    'from' => $myKey,
-                                    'time' => date('Y-m-d H:i:s')
-                                ]);
-                            }
-                            //添加队列存储数据
-                            $my['log'] = $my['log'] ?? 1;
-                            if ($my['log'] == 1) {
-                                RedisQueue::queue('iots_redis_queue_device_logs', [
-                                    'type' => $my['type'],
-                                    'from' => $myKey,
-                                    'vtype' => $my['vtype'],
-                                    'msg' => $myStr,
-                                    'time' => date('Y-m-d H:i:s')
-                                ]);
-                            }
+                        $gateway = RedisServices::getGatewayRedis($myKey);
+                        $result=SortingDataServices::receive($message, $myKey,$gateway);
+                        if (!$result){
+                            SortingDataServices::sendGateway($gateway,$myKey,$message);
                         }
                     }
                     //被动回复
-                    $directive = jsonDecode(Redis::hGet('HFiots-directive', str_replace('-Uid', '', $uid)), true);
+                    $directive = RedisServices::getGatewayDirective($myKey);
                     if (is_array($directive) && count($directive)) {
                         foreach ($directive as $k => $v) {
                             if (!trim($v['sval'])) {
                                 continue;
                             }
-                            $dirStr1 = '';
                             //触发指令 //HEX类型
                             if ($v['stype'] == 1) {
                                 $dirStr1 = strtoupper(bin2hex($message));
@@ -321,16 +148,11 @@ class Events
                     if ($_SERVER['GATEWAY_PORT'] == self::$WS_PORT || $_SERVER['GATEWAY_PORT'] == self::$WSS_PORT) {
                         $message = jsonDecode($message, true);
                         if ($message) {
-                            $val = $message['val'];
-                            //HEX类型
-                            if (strtoupper($message['type']) == '1') {
-                                $val = self::myHexTobin($val);
+                            var_dump("websocket任务添加；".json_encode($message));
+                            if (Gateway::isUidOnline($message["to"] . '-Uid')){
+                                RedisServices::addExecuteList($message['to'], SortingDataServices::$WebSocket, ["command"=>$message['val'],"type"=>$message['type'],"eol"=>$message['eol']]);
                             }
-                            //GB2312
-                            if (strtoupper($message['type']) == '2') {
-                                $val = iconv("UTF-8", "gb2312//IGNORE", $val);
-                            }
-                            Gateway::sendToUid($message['to'] . '-Uid', $val . ($message['eol'] == 1 ? PHP_EOL : ''));
+//                            Gateway::sendToUid($message['to'] . '-Uid', $val . ($message['eol'] == 1 ? PHP_EOL : ''));
                         }
                     }
                 }
@@ -341,40 +163,36 @@ class Events
                 if (!$message) {
                     return true;
                 }
+                $verification_status=RedisServices::verificationTextPortToken($message["token"]);
+                if(!$verification_status){//验证未通过
+                    return true;
+                }
                 //如果是super code
-                if ($message['from'] == self::$MAIN_CODE) {
-                    $message['action'] = !isset($message['action']) ? 'sendMsg' : $message['action'];
-                    switch ($message['action']) {
-                        case 'sendMsg':
-                            $val = $message['val'];
-                            //HEX类型
-                            if (strtoupper($message['type']) == '1') {
-                                $val = self::myHexTobin($val);
-                            }
-                            //GB2312
-                            if (strtoupper($message['type']) == '2') {
-                                $val = iconv("UTF-8", "gb2312//IGNORE", $val);
-                            }
-                            Gateway::sendToUid($message['to'] . '-Uid', $val . ($message['eol'] == 1 ? PHP_EOL : ''));
-                            break;
-                        case 'pushMqttDeviceOnline':
-                            self::pushDeviceIsOnlineToMember($message['code'], 1);
-                            break;
-                        case 'pushMqttDeviceOffline':
-                            self::pushDeviceIsOnlineToMember($message['code'], 0);
-                            break;
-                        case 'closeClient':
-                            self::closeClientByUid($message['to']);
-                            //推送下线
-                            self::pushDeviceIsOnlineToMember($message['from'], 0);
-                            break;
-                        default:
-                            break;
-                    }
+                $message['action'] = !isset($message['action']) ? 'sendMsg' : $message['action'];
+                switch ($message['action']) {
+                    case 'sendMsg':
+                        if (Gateway::isUidOnline($message["to"] . '-Uid')){
+                            Gateway::sendToUid($message['to'] . '-Uid', $message["val"] );
+                        }
+                        break;
+                    case 'pushMqttDeviceOnline':
+                        self::pushDeviceIsOnlineToMember($message['code'], 1);
+                        break;
+                    case 'pushMqttDeviceOffline':
+                        self::pushDeviceIsOnlineToMember($message['code'], 0);
+                        break;
+                    case 'closeClient':
+                        self::closeClientByUid($message['to']);
+                        //推送下线
+                        self::pushDeviceIsOnlineToMember($message['from'], 0);
+                        break;
+                    default:
+                        break;
                 }
             }
         } catch (\Throwable $e) {
-            Gateway::closeClient($client_id);
+            var_dump("异常：" . "file：" . $e->getFile() . " error：" . $e->getMessage() . " line：" . $e->getLine());
+//            Gateway::closeClient($client_id);
             Log::info('onMessage error', [
                 'error' => $e->getMessage(),
                 'line' => $e->getLine(),
@@ -393,86 +211,22 @@ class Events
      */
     public static function onClose($client_id)
     {
+        //需要测试删除定时器
         if (isset($_SESSION['timerId'])) {
             Timer::del($_SESSION['timerId']);
         }
-        if (isset($_SESSION['timerDefaultId'])) {
-            Timer::del($_SESSION['timerDefaultId']);
-        }
+//        if (isset($_SESSION['timerDefaultId'])) {
+//            Timer::del($_SESSION['timerDefaultId']);
+//        }
         if (isset($_SESSION['uid'])) {
             $myUid = $_SESSION['uid'];
             $myCode = str_replace('-Uid', '', $myUid);
-            Redis::hDel('HFiots-online', $myCode);
-            self::pushDeviceIsOnlineToMember($myCode, 0);
-        }
-    }
-    /**
-     * Undocumented function 数据过滤
-     *
-     * @param [type] $my 设备信息
-     * @param [type] $message 设备code
-     * @return integer 1通过过滤,0未通过
-     */
-    public static function checkFilter($myKey, $message)
-    {
-        //是否需要过滤
-        $filter = jsonDecode(Redis::hGet('HFiots-filter', $myKey), true);
-        $ok = 1; //1通过过滤,0未通过
-        //需要过滤
-        if ($filter && $filter['is'] == 1) {
-            //字符长度
-            if (in_array(0, $filter['type'])) {
-                switch ($filter['lengType']) {
-                    case '1': // >
-                        if (strlen($message) <= $filter['length']) {
-                            $ok = 0;
-                        }
-                        break;
-
-                    case '2': // ＜
-                        if (strlen($message) >= $filter['length']) {
-                            $ok = 0;
-                        }
-                        break;
-
-                    case '3': // ＝
-                        if (strlen($message) != $filter['length']) {
-                            $ok = 0;
-                        }
-                        break;
-
-                    case '4': // ≥
-                        if (strlen($message) < $filter['length']) {
-                            $ok = 0;
-                        }
-                        break;
-
-                    case '5': // ≤
-                        if (strlen($message) > $filter['length']) {
-                            $ok = 0;
-                        }
-                        break;
-
-                    default:
-                        # code...
-                        break;
-                }
-            }
-            //前N位
-            if (in_array(1, $filter['type'])) {
-                if (!in_array(substr($message, 0, $filter['before']), explode(',', $filter['beforeVal']))) {
-                    $ok = 0;
-                }
-            }
-            //忽略心跳包
-            if (in_array(2, $filter['type'])) {
-                if (in_array($message, explode(',', $filter['heartVal']))) {
-                    $ok = 0;
-                }
+            if (self::isOnlineByUid($myCode)==0){
+                self::pushDeviceIsOnlineToMember($myCode, 0);
             }
         }
-        return $ok;
     }
+
     /**
      * Undocumented function HEX转bin
      *
@@ -492,6 +246,7 @@ class Events
         }
         return hex2bin($str);
     }
+
     /**
      * Undocumented function 设备上线下线的时候推送给最高权限
      *
@@ -501,12 +256,19 @@ class Events
      */
     public static function pushDeviceIsOnlineToMember($code, $status)
     {
-        Gateway::sendToUid(self::$MAIN_CODE . '-Uid', json_encode([
-            'k' => $code,
-            'v' => ['online' => $status],
-            't' => date('Y-m-d H:i:s')
-        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        GatewayModel::saveGatewayOnline($code, $status);
+        $gateway=RedisServices::getGatewayRedis($code);
+        GatewayOnlineLogServices::saveOnlineLog($gateway,$status);
+        if (!empty($gateway['admin_id'])){
+            Gateway::sendToUid($gateway['admin_id'] . '-Uid', json_encode([
+                'k' => $code,
+                'v' => ["type" => "Online", "code" => 200, "data" => ['online' => $status]],
+                't' => date('Y-m-d H:i:s')
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        }
+
     }
+
     /**
      * Undocumented function 关闭指定uid的所有客户端
      *
@@ -515,6 +277,22 @@ class Events
      */
     public static function closeClientByUid($uid)
     {
+        if (is_array($uid)) {
+            foreach ($uid as $v) {
+                self::closeClient($v);
+            }
+        } else {
+            self::closeClient($uid);
+        }
+    }
+
+    /**
+     * 关闭连接
+     * @param $uid
+     * @return void
+     */
+    public static function closeClient($uid)
+    {
         //查询所有客户端
         $allClientId = Gateway::getClientIdByUid($uid . '-Uid');
         if ($allClientId) {
@@ -522,5 +300,18 @@ class Events
                 Gateway::closeClient($v);
             }
         }
+    }
+
+    /**
+     * 根据uid判断设备是否在线
+     *
+     * @param [type] $code 设备code
+     * @return int 1在线,0不在线
+     */
+    public static function isOnlineByUid($code)
+    {
+        //本方法可能用于控制器,所以需要设置registerAddress
+        Gateway::$registerAddress = config('plugin.webman.gateway-worker.process.worker.constructor.config.registerAddress');
+        return Gateway::isUidOnline($code . '-Uid');
     }
 }

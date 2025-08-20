@@ -2,6 +2,7 @@
 
 namespace app\model;
 
+use plugin\kundian\base\BaseModel;
 use think\Model;
 
 /**
@@ -10,9 +11,8 @@ use think\Model;
  * @mixin Query
  * @method static \think\Model findOrEmpty() 查询
  * @method static \think\Model create() 新增
- * @method static \think\Model update() 修改
  */
-class Iot extends Model
+class Iot extends BaseModel
 {
     //协议类型
     const TYPE_LIST = [0 => 'TCP', 1 => 'WS/WSS', 2 => 'MQTT'];

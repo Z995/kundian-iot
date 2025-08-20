@@ -93,5 +93,53 @@ return [
                 ],
             ]
         ],
+    ],
+    'queue-error' => [
+        'handlers' => [
+            [
+                'class' => Monolog\Handler\RotatingFileHandler::class,
+                'constructor' => [
+                    runtime_path() . '/logs/queue/error/info.log',
+                    70, //$maxFiles
+                    Monolog\Logger::DEBUG,
+                ],
+                'formatter' => [
+                    'class' => Monolog\Formatter\LineFormatter::class,
+                    'constructor' => [null, 'Y-m-d H:i:s', true],
+                ],
+            ]
+        ],
+    ],
+    'MqttClient' => [
+        'handlers' => [
+            [
+                'class' => Monolog\Handler\RotatingFileHandler::class,
+                'constructor' => [
+                    runtime_path() . '/logs/process/MqttClient/info.log',
+                    70, //$maxFiles
+                    Monolog\Logger::DEBUG,
+                ],
+                'formatter' => [
+                    'class' => Monolog\Formatter\LineFormatter::class,
+                    'constructor' => [null, 'Y-m-d H:i:s', true],
+                ],
+            ]
+        ],
+    ]  ,
+    'MqttClientVendor' => [//Vendor中的代码使用
+        'handlers' => [
+            [
+                'class' => Monolog\Handler\RotatingFileHandler::class,
+                'constructor' => [
+                    runtime_path() . '/logs/process/MqttClientVendor/info.log',
+                    70, //$maxFiles
+                    Monolog\Logger::DEBUG,
+                ],
+                'formatter' => [
+                    'class' => Monolog\Formatter\LineFormatter::class,
+                    'constructor' => [null, 'Y-m-d H:i:s', true],
+                ],
+            ]
+        ],
     ]
 ];
