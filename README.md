@@ -1,70 +1,98 @@
-<div style="padding:18px;max-width: 1024px;margin:0 auto;background-color:#fff;color:#333">
-<h1>webman</h1>
 
-基于<a href="https://www.workerman.net" target="__blank">workerman</a>开发的超高性能PHP框架
+##详细介绍
+本系统是基于webman开发的一套物联网平台，可以实现物联网设备的联网上线、数据采集、命令下发、被动回复、实时通讯等功能，支持TCP协议和Websocket协议（ws和wss），本系统提供的是TCP协议透传，用户需根据实际情况将设备协议转为TCP协议后接入本系统，一般可使用DTU设备或IO设备，这些设备可以将硬件的各种协议统一转为TCP协议，如电表、仪表、传感器、地磅、IO设备、开关量、模拟量、扫码枪、语音播报、身份证读卡器、各类灯具、门禁开关等都支持，真正实现万物互联。
+##功能特性
+1、数据采集：支持利用TCP协议从设备实时采集数据，数据可以直接存入redis里，支持string类型和list类型，支持数据过滤，支持数据转发给指定url。
+2、命令下发：支持服务端秒级给设备下发指令，支持以队列的方式下发。
+3、被动回复：根据设备发送的特定指令，针对性的回复命令。
+4、实时通讯：可以跟设备实时进行通讯，方便验证命令和调试设备。
+5、数据转发：可以实现两个或多个设备之间的相互转发，如：想让设备采集的数据直接发送到网页websocket，用转发即可简单实现。
 
+##安装使用
+1、下载代码部署到服务器上
+2、修改配置参数：文件路径：config/plugin/webman/gateway-worker/app.php,其中ip:为所在服务器的公网IP,server_port:webman的http协议监听端口,tcp_port:TCP协议监听端口,ws_port:WebSocket协议监听端口(ws),wss_port:WebSocket协议监听端口(wss),ssl_cert:SSL证书(.crt),ssl_key:SSL证书密钥(.key),super_code:超级权限注册包(注意修改),默认所有的设备收到的消息都会转发消息到这个注册包.
+(1)设置的端口要注意开启放行，如果是用的宝塔，在安全栏目添加，如果是阿里云ECS，注意在ECS控制台里添加安全组放行。
+(2)wss_port是https的websocket端口，如果需要使用,请配置ssl证书，阿里云腾讯云都可以申请免费的证书。
+3、修改数据库连接配置：文件路径：config/thinkorm.php，数据库文件在根目录，请手动安装。
+4、修改redis连接配置：文件路径：config/redis.php，redis扩展和redis数据库请自行安装。
+##启动
+1、根目录里输入php start.php start即可启动，具体可参考webman手册。
+2、网页访问http://xx.xx.xx.xx:6767/index 即可登录，为方便测试使用，登录环节没有验证权限，点击登录即可进入设备管理页面，用户自行设置验权。
+3、进入http://xx.xx.xx.xx:6767/iot/index 进行配置。
 
-<h1>学习</h1>
+##设备操作
 
-<ul>
-  <li>
-    <a href="https://www.workerman.net/webman" target="__blank">主页 / Home page</a>
-  </li>
-  <li>
-    <a href="https://webman.workerman.net" target="__blank">文档 / Document</a>
-  </li>
-  <li>
-    <a href="https://www.workerman.net/doc/webman/install.html" target="__blank">安装 / Install</a>
-  </li>
-  <li>
-    <a href="https://www.workerman.net/questions" target="__blank">问答 / Questions</a>
-  </li>
-  <li>
-    <a href="https://www.workerman.net/apps" target="__blank">市场 / Apps</a>
-  </li>
-  <li>
-    <a href="https://www.workerman.net/sponsor" target="__blank">赞助 / Sponsors</a>
-  </li>
-  <li>
-    <a href="https://www.workerman.net/doc/webman/thanks.html" target="__blank">致谢 / Thanks</a>
-  </li>
-</ul>
+##一、添加设备
+1、自定义注册包：
+（1）必填。自定义注册包是设备与服务端建立连接的唯一凭证，设备在连接服务端时，必须使用自定义注册包，否则服务端会拒绝连接。
+（2）自定义注册包可以是任意字符串，但是不能包含英文逗号，否则会导致解析错误。
+（3）注册包是设备的唯一ID且不能跟其他设备重复，相当于设备的身份证，用于向服务端验证身份。一般是在使用DTU的时候配置在DTU里，第一次连接服务端的时候，DTU会发送自定义注册包进行身份注册。服务端验证通过后建立连接。
+（4）自定义注册包只需在第一次连接服务端时发送，后续连接服务端时，不需要再发送。
 
-<div style="float:left;padding-bottom:30px;">
+2、自定义回复包：非必填，自定义回复包是设备在第一次注册成功时，服务端回复给设备的数据，如果不填写，那么服务端不回复。
 
-  <h1>赞助商</h1>
+3、名称：必填，设备名称。
 
-  <h4>特别赞助</h4>
-  <a href="https://www.crmeb.com/?form=workerman" target="__blank">
-    <img src="https://www.workerman.net/img/sponsors/6429/20230719111500.svg" width="200">
-  </a>
+4、协议类型：
+（1）TCP透传：创建一个TCP客户端，设备发送的数据会直接转发给服务端，服务端发送的数据会直接转发给设备。用户可以通过DTU设备，将设备的数据转发给服务端，服务端再转发给设备，这样就实现了设备与服务端的通讯。
+（2）WebSocket：创建一个websocket客户端。
 
-  <h4>铂金赞助</h4>
-  <a href="https://www.fadetask.com/?from=workerman" target="__blank"><img src="https://www.workerman.net/img/sponsors/1/20230719084316.png" width="200"></a>
-  <a href="https://www.yilianyun.net/?from=workerman" target="__blank" style="margin-left:20px;"><img src="https://www.workerman.net/img/sponsors/6218/20230720114049.png" width="200"></a>
+5、登录类型：
+（1）单点登录：该自定义注册包只允许一个设备登录，当多个设备使用同一个注册包登录时，会将已登录设备踢下去。通常设备与服务端建立的TCP协议都使用单点登录。
+（2）多点登录，该自定义注册包只允许多个设备同时登录，通常websocket协议都是多点登录。
 
+6、数据字段：
+（1）此字段为配置redis字段，设备返回的数据会存入到这个redis字段里，支持string类型和list类型，如果是list类型，那么设备返回的数据会存入到list的头部，如果是string类型，那么设备返回的数据会覆盖之前的数据。如果想设置list类型，那么请在字段前面加上：list，如：list:valList。如果不设置，默认为string类型，如：val，即表示字段为val的string类型数据。
+（2）ASCII：设备返回的数据以ASCII格式存入redis，HEX：以16进制格式存入redis
+（3）请注意：即使不设置redis字段，这里的数据类型也要设置，系统是根据这个字段进行数据转化，如一般的设备都是HEX，系统默认
 
-</div>
+7、数据转发：
+（1）此字段为配置转发设备的注册包，多个注册包用英文逗号分隔。
+![](/upload/img/20230224/2463f8299f0a52.png)
 
+上图含义：路灯M9NRilOsYETL2接收到的数据会同步转发到vW5FqKGW6G28,B2PeiPfwejdu两个设备里。
+（2）转发的数据会进行简单的打包，以json字符串进行转发。格式为：
+{"k":"M9NRilOsYETL2","v":"values","t":"xxxx-xx-xx xx:xx:xx"}
+解释：k:数据来源的注册包,v:转发的数据,t:转发时间.
 
-<div style="float:left;padding-bottom:30px;clear:both">
+8、Http-Client：
+（1）此字段为配置数据转发的url，多个url用英文逗号分隔。
+![](/upload/img/20230224/2463f82a5f3bff.png)
+上图含义：自来水供水tK8i2JvLJGrf3接收到的数据会同步转发到http://xxx.com,http://yyy.com 这两个域名，
+(2)转发会以post请求进行转发，有以下参数：vtype：数据类型：0表示ASCII，1表示HEX16进制，msg：转发的数据，from：转发来源注册包
 
-  <h1>请作者喝咖啡</h1>
+9、数据过滤
+（1）如果启用的话，系统会对设备发来的数据进行简单的过滤，不符合过滤条件的数据会被丢弃。
+（2）字节长度：会根据数据的字节长度进行过滤。
+（3）前N位字符：会根据数据的前N位字符进行过滤。
+（4）忽略心跳包：会根据特定字符串进行过滤。
 
-<img src="https://www.workerman.net/img/wx_donate.png" width="200">
-<img src="https://www.workerman.net/img/ali_donate.png" width="200">
-<br>
-<b>如果您觉得webman对您有所帮助，欢迎捐赠。</b>
+##二、定时下发
 
+1、设备默认不启用定时下发，如果启用的话，需要设备重新连接后生效。
+2、系统默认支持频率：1秒1次、1秒2次、30秒1次、1分钟1次、3秒1次、10秒1次。
+3、自定义内容：ASCII类型，HEX类型。物联网设备一般以HEX16进制类型下发。
+4、支持填写多个指令，用英文逗号,分隔。若设置多个指令，则会按照设置的频率，按照指令从前到后依次发送。![](/upload/img/20230316/166412668d1a4d.png)
+如上图所示，代表第一个30秒的时候，发送010300010001D5CA，第二个30秒发送010300040001C5CB，第三个30秒发送010300010001D5CA，依次类推。这样设计的目的是有些设备会限制请求帧的频率，频率太高或一次性发多条，设备就不会回复。
+##三、被动回复
+1、系统支持设置两套命令回复。
+2、触发指令：设备回复的指令如果与触发指令匹配即触发，服务端会进行回复。
+3、回复指令：当触发被动回复后服务端回复的指令。
+4、ASCII类型，HEX类型（16进制）
 
-</div>
+##四、数据流
+设备发送的数据都会在这个数据流上显示。系统设置了一个超级权限注册包，即config/plugin/webman/gateway-worker/app.php文件中的super_code字段，所有的iot设备发送的数据，都会默认给这个超级权限转发，即实现了数据流的实时数据监控，super_code也可以通过数据流下发指令给设备，即实现与设备的实时通讯。
 
+##五、队列下发指令
+1、每一个设备在连接服务端成功之后，都会默认创建一个定时器，这个定时器是按照1秒1次进行下发指令，该定时器使用队列进行依次下发，队列为HFiots-注册包名-Default-Crontab，如果注册包名为xxxx，即：HFiots-xxxx-Default-Crontab。
+2、队列的数据格式为：
+$data = json_encode(['vtype' => 1, 'val' => 'xxxxxx'], JSON_UNESCAPED_UNICODE);
+vtype:数据类型  0ASCII,1HEX16进制
+val:下发指令
+3、使用方法：Redis::rpush('HFiots-xxxx-Default-Crontab', $data);
+4、服务端会按照Redis::lindex('HFiots-xxxx-Default-Crontab', 0)的顺序1秒钟给设备下发一次指令
 
-<div style="clear: both">
-<h1>LICENSE</h1>
-The webman is open-sourced software licensed under the MIT.
-</div>
-
-</div>
-
+##六、心跳包
+1、系统默认要求设备每隔30秒发送一次心跳包，如果设备超过55秒没有发送心跳包，系统会自动断开设备连接。
+2、如果想关闭心跳包，可以在config/plugin/webman/gateway-worker/process.php文件中的对应协议的pingNotResponseLimit字段设置为0，即关闭心跳包。
 
