@@ -1,12 +1,5 @@
 <?php
-/*
- * @Author: your name
- * @Date: 2022-02-06 08:41:47
- * @LastEditTime: 2023-04-15 16:36:02
- * @LastEditors: 冷丶秋秋秋秋秋
- * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- * @FilePath: \tp6\think\app\common\Excels.php
- */
+
 
 namespace extend;
 

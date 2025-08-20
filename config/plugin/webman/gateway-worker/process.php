@@ -1,12 +1,4 @@
 <?php
-/*
- * @Author: 冷丶秋秋秋秋秋 
- * @Date: 2023-02-23 19:47:42
- * @LastEditors: 冷丶秋秋秋秋秋 
- * @LastEditTime: 2023-03-25 16:26:54
- * @FilePath: \yunxiao-app-iot\config\plugin\webman\gateway-worker\process.php
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
 
 use Webman\GatewayWorker\Gateway;
 use Webman\GatewayWorker\BusinessWorker;
