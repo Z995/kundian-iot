@@ -1,7 +1,7 @@
 
 详细介绍
 
-演示地址：https://iot-test.cqkd.com/　　
+演示地址：https://iot-test.cqkd.com
 演示账户：联系技术获取（微信tukun0206）
 
 
