@@ -1,10 +1,10 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : 物联网iot
+ Source Server         : 坤典物联网iot
  Source Server Type    : MySQL
  Source Server Version : 50744
- Source Host           : 60.247.225.87:3306
+ Source Host           : 60.xxx.xxx.87:3306
  Source Schema         : iot
 
  Target Server Type    : MySQL
@@ -34,7 +34,7 @@ CREATE TABLE `kd_admin`  (
 -- ----------------------------
 -- Records of kd_admin
 -- ----------------------------
-INSERT INTO `kd_admin` VALUES (1, 'admin', '18788888888', '$2y$10$WI6HZ6o1AbC0EQ41UBlUDulhqVaqxDqe8q06MQ5QF8UWrsT6mrE86', 1, 0, '2025-05-27 16:01:20');
+INSERT INTO `kd_admin` VALUES (1, 'admin', '18723237733', '$2y$10$WI6HZ6o1AbC0EQ41UBlUDulhqVaqxDqe8q06MQ5QF8UWrsT6mrE86', 1, 0, '2025-05-27 16:01:20');
 
 -- ----------------------------
 -- Table structure for kd_alarm
