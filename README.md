@@ -109,21 +109,37 @@ php start.php start
 
 5.手动设置定位即可。
 
-### 设备管理
+## 设备管理
 添加设备名称，选择关联网关与设备模板即可
-### 页面截图
+## 页面截图
+管理后端页面截图，客户端支持微信小程序，搜索演示“坤典物联网”，客户端采用uniapp跨平台开发，支持打包安卓、IOS、H5等平台
+### 登录页面
 ![输入图片说明](readme/login.png)
+### 登录首页
 ![输入图片说明](readme/index.png)
+### 用户列表
 ![输入图片说明](readme/account.png)
+### 设备列表
 ![输入图片说明](readme/device_list.png)
+### 设备数据
 ![输入图片说明](readme/deviceDetail.png)
 ![输入图片说明](readme/deviceDetail2.png)
+### 设备控制
+![输入图片说明](readme/deviceDetail3.png)
+### 设备关联视频监控
 ![输入图片说明](readme/ipc.png)
+### 设备模板
 ![输入图片说明](readme/mouldAdd.png)
+### 产品库
 ![输入图片说明](readme/product.png)
+### 网关管理
 ![输入图片说明](readme/gateway.png)
 ![输入图片说明](readme/detail.png)
+### 监控管理
 ![输入图片说明](readme/ipc265.png)
+### 国标监控
 ![输入图片说明](readme/28181.png)
+### 历史数据
 ![输入图片说明](readme/history.png)
+### 报警联动
 ![输入图片说明](readme/alarm.png)
