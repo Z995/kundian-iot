@@ -112,10 +112,18 @@ php start.php start
 ### 设备管理
 添加设备名称，选择关联网关与设备模板即可
 ### 页面截图
-
-
-
-
-
-
-
+![输入图片说明](readme/login.png)
+![输入图片说明](readme/index.png)
+![输入图片说明](readme/account.png)
+![输入图片说明](readme/device_list.png)
+![输入图片说明](readme/deviceDetail.png)
+![输入图片说明](readme/deviceDetail2.png)
+![输入图片说明](readme/ipc.png)
+![输入图片说明](readme/mouldAdd.png)
+![输入图片说明](readme/product.png)
+![输入图片说明](readme/gateway.png)
+![输入图片说明](readme/detail.png)
+![输入图片说明](readme/ipc265.png)
+![输入图片说明](readme/28181.png)
+![输入图片说明](readme/history.png)
+![输入图片说明](readme/alarm.png)
