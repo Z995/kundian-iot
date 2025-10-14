@@ -1,35 +1,90 @@
 
-详细介绍
+# 坤典物联网平台
 
-演示地址：https://iot-test.cqkd.com
-演示账户：联系技术获取（微信tukun0206）
+## 项目介绍
+本系统是基于webman高性能框架开发的一套物联网平台，可以实现物联网设备的DTU设备联网上线、数据采集、命令下发、被动回复、实时通讯等功能，支持TCP协议和Websocket协议（ws和wss）。
 
+系统提供TCP协议透传服务，用户需根据实际情况将设备协议转为TCP协议后接入系统，可使用DTU设备，如土壤传感器、气象设备、温湿度传感器、仪表、传感器、地磅、IO设备、开关量、模拟量、扫码枪、语音播报、身份证读卡器、各类灯具、门禁开关等设备都支持接入，实现设备轻松上云。
 
-本系统是基于webman高性能框架开发的一套物联网平台，可以实现物联网设备的DTU设备联网上线、数据采集、命令下发、被动回复、实时通讯等功能，支持TCP协议和Websocket协议（ws和wss），本系统提供的是TCP协议透传，用户需根据实际情况将设备协议转为TCP协议后接入本系统，可使用DTU设备，如土壤传感器、气象设备、温湿度传感器、仪表、传感器、地磅、IO设备、开关量、模拟量、扫码枪、语音播报、身份证读卡器、各类灯具、门禁开关等都支持，实现设备轻松上云。
-
-
-功能特性
-
-
-1、设备管理：支持利用TCP协议从设备实时采集数据，支持modbusRTU协议，绑定传感器模板即可采集，。
-2、网关管理：支持服务端秒级给设备下发指令，支持以队列的方式下发。
-3、被动回复：根据设备发送的特定指令，针对性的回复命令。
-4、实时通讯：可以跟设备实时进行通讯，方便验证命令和调试设备。
-5、数据转发：可以实现两个或多个设备之间的相互转发，如：想让设备采集的数据直接发送到网页websocket，用转发即可简单实现。
-
-安装使用
+## 演示地址
+- 演示地址：https://iot-test.cqkd.com
+- 演示账户：联系技术获取（微信tukun0206）
 
 
-1、下载代码部署到服务器上
-2、修改配置参数：env文件,其中ip:为所在服务器的公网IP,server_port:webman的http协议监听端口,tcp_port:TCP协议监听端口,ws_port:WebSocket协议监听端口(ws),wss_port:WebSocket协议监听端口(wss),ssl_cert:SSL证书(.crt),ssl_key:SSL证书密钥(.key),super_code:超级权限注册包(注意修改),默认所有的设备收到的消息都会转发消息到这个注册包.
-(1)设置的端口要注意开启放行，如果是用的宝塔，在安全栏目添加，如果是阿里云ECS，注意在ECS控制台里添加安全组放行。
+## 功能特性
+1. **设备管理**：支持利用TCP协议从设备实时采集数据，支持modbusRTU协议，绑定传感器模板即可采集
+2. **网关管理**：支持服务端秒级给设备下发指令，支持以队列的方式下发
+3. **被动回复**：根据设备发送的特定指令，针对性的回复命令
+4. **实时通讯**：可以跟设备实时进行通讯，方便验证命令和调试设备
+5. **数据转发**：可以实现两个或多个设备之间的相互转发，如：想让设备采集的数据直接发送到网页websocket，用转发即可简单实现
 
+## 环境要求
+- PHP >= 8.1
+- MySQL >= 5.7
+- Redis >= 4.0
+- 扩展要求：bcmath, curl
 
+## 安装步骤
 
-启动
+### 1. 下载代码
+克隆或下载本项目代码到服务器上。
 
+### 2. 导入数据库
+将根目录下的`iot.sql`文件导入到MySQL数据库中。
 
-根目录里输入php start.php start即可启动，具体可参考webman手册。
+### 3. 配置环境变量
+在项目根目录创建`.env`文件，复制`.env.example`文件的内容并根据实际环境修改配置：
+```bash
+cp .env.example .env
+```
+编辑`.env`文件，修改以下关键配置项：
+```
+# Redis配置
+REDIS_HOST = 127.0.0.1
+REDIS_PORT = 6379
+REDIS_PWD = null
+REDIS_SELECT = 1
+
+# 数据库配置
+TYPE = mysql
+HOSTNAME = 127.0.0.1
+DATABASE = iot
+USERNAME = root
+PASSWORD = 123456
+HOSTPORT = 3306
+CHARSET = utf8
+PREFIX = kd_
+
+# 证书配置（用于WSS协议）
+ssl_cert = /www/server/panel/vhost/cert/iot-test.cqkd.com/fullchain.pem
+ssl_key = /www/server/panel/vhost/cert/iot-test.cqkd.com/privkey.pem
+```
+
+### 5. 启动项目
+在项目根目录执行以下命令启动系统：
+```bash
+php start.php start
+```
+如需在后台运行，可以使用宝塔面板的进程守护管理器，添加为一个守护进程：
+image.png
+```bash
+php start.php start 
+```
+
+## 端口配置
+系统使用的主要端口包括：
+- webman的HTTP协议监听端口
+- TCP协议监听端口
+- WebSocket协议监听端口(ws)
+- WebSocket协议监听端口(wss)
+
+请确保这些端口在服务器安全组和防火墙中已开放。
+
+## 更多文档
+具体使用细节可参考webman框架的完整手册：https://www.workerman.net/doc/webman
+
+## 技术支持
+如遇问题，请联系技术支持（微信tukun0206）
 
 
 ##设备操作

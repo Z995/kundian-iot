@@ -1,17 +1,6 @@
 /*
- Navicat Premium Data Transfer
-
  Source Server         : 坤典物联网iot
  Source Server Type    : MySQL
- Source Server Version : 50744
- Source Host           : 60.xxx.xxx.87:3306
- Source Schema         : iot
-
- Target Server Type    : MySQL
- Target Server Version : 50744
- File Encoding         : 65001
-
- Date: 20/08/2025 17:43:25
 */
 
 SET NAMES utf8mb4;
