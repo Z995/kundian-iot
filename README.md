@@ -68,7 +68,7 @@ ssl_key = /www/server/panel/vhost/cert/iot-test.cqkd.com/privkey.pem
 php start.php start
 ```
 如需在后台运行，可以使用宝塔面板的进程守护管理器，添加为一个守护进程：
-![输入图片说明](public/image.png)
+![输入图片说明](readme/image.png)
 ```bash
 php start.php start 
 ```
@@ -76,14 +76,14 @@ php start.php start
 ## 端口配置
 系统使用的主要端口包括：
 - webman的HTTP协议监听端口
-- TCP协议监听端口
-- WebSocket协议监听端口(ws)
+- TCP协议监听端口 6262
+- WebSocket协议监听端口(ws)6363
 - WebSocket协议监听端口(wss)
 
 请确保这些端口在服务器安全组和防火墙中已开放。
 
 ## 更多文档
-具体使用细节可参考webman框架的完整手册：https://www.workerman.net/doc/webman
+具体二次开发需要使用的细节可参考webman框架的完整手册：https://www.workerman.net/doc/webman
 
 ## 技术支持
 如遇问题，请联系技术支持（微信tukun0206）
@@ -111,6 +111,8 @@ php start.php start
 
 ### 设备管理
 添加设备名称，选择关联网关与设备模板即可
+### 页面截图
+
 
 
 
