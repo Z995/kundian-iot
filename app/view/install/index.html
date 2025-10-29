@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>坤典开源物联网系统 - 安装向导</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .install-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            max-width: 800px;
+            width: 100%;
+            margin: 20px;
+            overflow: hidden;
+        }
+        .install-header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .install-steps {
+            padding: 40px;
+        }
+        .step-content {
+            display: none;
+        }
+        .step-content.active {
+            display: block;
+        }
+        .step-indicator {
+            margin-bottom: 30px;
+        }
+        .step-item {
+            display: inline-block;
+            width: 22%;
+            text-align: center;
+            position: relative;
+        }
+        .step-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            right: -15%;
+            width: 30%;
+            height: 2px;
+            background-color: #e9ecef;
+        }
+        .step-item.active:not(:last-child)::after {
+            background-color: #3498db;
+        }
+        .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #e9ecef;
+            color: #6c757d;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .step-item.active .step-number {
+            background-color: #3498db;
+            color: white;
+        }
+        .step-text {
+            font-size: 14px;
+            color: #6c757d;
+        }
+        .step-item.active .step-text {
+            color: #3498db;
+            font-weight: bold;
+        }
+        .btn-primary {
+            background-color: #3498db;
+            border-color: #3498db;
+        }
+        .btn-primary:hover {
+            background-color: #2980b9;
+            border-color: #2980b9;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .env-check-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .env-check-item.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .env-check-item.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status-icon {
+            font-size: 18px;
+        }
+        .status-icon.success::before {
+            content: '✓';
+            color: #28a745;
+            font-weight: bold;
+        }
+        .status-icon.error::before {
+            content: '✗';
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .progress-container {
+            margin-top: 30px;
+        }
+        .progress {
+            height: 25px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            background-color: #3498db;
+            transition: width 0.3s ease;
+        }
+        .progress-text {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #6c757d;
+        }
+        .alert {
+            margin-bottom: 20px;
+        }
+        .install-success {
+            text-align: center;
+            padding: 40px 0;
+        }
+        .install-success-icon {
+            font-size: 80px;
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+        .install-success h2 {
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+        .install-success p {
+            color: #6c757d;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="install-container">
+        <div class="install-header">
+            <h1>坤典开源物联网系统</h1>
+            <p>安装向导</p>
+        </div>
+        
+        <div class="install-steps">
+            <!-- 步骤指示器 -->
+            <div class="step-indicator">
+                <div class="step-item active">
+                    <div class="step-number">1</div>
+                    <div class="step-text">环境检查</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">2</div>
+                    <div class="step-text">数据库配置</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">3</div>
+                    <div class="step-text">管理员设置</div>
+                </div>
+                <div class="step-item">
+                    <div class="step-number">4</div>
+                    <div class="step-text">安装完成</div>
+                </div>
+            </div>
+            
+            <!-- 步骤1：环境检查 -->
+            <div id="step-1" class="step-content active">
+                <h3>环境检查</h3>
+                <p class="text-muted mb-4">正在检查系统环境...请稍候</p>
+                <div id="env-check-results">
+                    <!-- 环境检查结果将在这里显示 -->
+                </div>
+                <div class="mt-4 text-center">
+                    <button id="btn-step1-next" class="btn btn-primary" disabled>
+                        下一步
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 步骤2：数据库配置 -->
+            <div id="step-2" class="step-content">
+                <h3>数据库配置</h3>
+                <p class="text-muted mb-4">请输入数据库连接信息</p>
+                <form id="db-config-form">
+                    <div class="form-group">
+                        <label class="form-label" for="hostname">数据库地址</label>
+                        <input type="text" class="form-control" id="hostname" name="hostname" value="localhost" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="hostport">数据库端口</label>
+                        <input type="text" class="form-control" id="hostport" name="hostport" value="3306" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="database">数据库名</label>
+                        <input type="text" class="form-control" id="database" name="database" placeholder="请输入数据库名" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="username">用户名</label>
+                        <input type="text" class="form-control" id="username" name="username" placeholder="请输入数据库用户名" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="password">密码</label>
+                        <input type="password" class="form-control" id="password" name="password" placeholder="请输入数据库密码">
+                    </div>
+                    <div class="mt-4 text-center">
+                        <button type="button" id="btn-step2-prev" class="btn btn-secondary">
+                            上一步
+                        </button>
+                        <button type="button" id="test-db-connection" class="btn btn-info mx-2">
+                            测试连接
+                        </button>
+                        <button type="button" id="btn-step2-next" class="btn btn-primary" disabled>
+                            下一步
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- 步骤3：管理员设置 -->
+            <div id="step-3" class="step-content">
+                <h3>管理员设置</h3>
+                <p class="text-muted mb-4">请设置管理员账号信息</p>
+                <form id="admin-config-form">
+                    <div class="form-group">
+                        <label class="form-label" for="admin_name">用户名</label>
+                        <input type="text" class="form-control" id="admin_name" name="admin_name" value="admin" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="admin_phone">手机号</label>
+                        <input type="text" class="form-control" id="admin_phone" name="admin_phone" placeholder="请输入手机号">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="admin_password">密码</label>
+                        <input type="password" class="form-control" id="admin_password" name="admin_password" placeholder="请输入密码" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="confirm_password">确认密码</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" placeholder="请再次输入密码" required>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <button type="button" id="btn-step3-prev" class="btn btn-secondary">
+                            上一步
+                        </button>
+                        <button type="button" id="btn-step3-next" class="btn btn-primary">
+                            开始安装
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- 步骤4：安装完成 -->
+            <div id="step-4" class="step-content">
+                <div id="installing-status" class="installing-status" style="display: block; text-align: center; margin: 20px 0; padding: 30px; background: #f8f9fa; border-radius: 8px;">
+                    <div style="font-size: 48px; margin-bottom: 15px;">🔄</div>
+                    <h3 style="font-size: 24px; margin-bottom: 10px; color: #495057;">安装中</h3>
+                    <p style="color: #6c757d;">系统正在进行最后的配置，请耐心等待...</p>
+                </div>
+                <div id="restart-countdown" class="install-success" style="display: none;">
+                    <div class="install-success-icon">🔄</div>
+                    <h2>系统重启中</h2>
+                    <p>系统正在重启，请稍候... <span id="countdown-seconds">5</span> 秒</p>
+                </div>
+                <div id="install-complete" class="install-success" style="display: none;">
+                    <div class="install-success-icon">✓</div>
+                    <h2>安装完成！</h2>
+                    <p>系统已成功安装，请点击下方按钮进入登录页面。</p>
+                    <a href="/login" class="btn btn-primary btn-lg">
+                        前往登录
+                    </a>
+                </div>
+                <div class="progress-container">
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div class="progress-text">正在安装，请稍候...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检查系统是否已安装
+            checkInstallStatus();
+            
+            // 切换步骤
+            document.getElementById('btn-step1-next').addEventListener('click', () => showStep(2));
+            document.getElementById('btn-step2-prev').addEventListener('click', () => showStep(1));
+            document.getElementById('btn-step2-next').addEventListener('click', () => showStep(3));
+            document.getElementById('btn-step3-prev').addEventListener('click', () => showStep(2));
+            document.getElementById('btn-step3-next').addEventListener('click', function() {
+                showStep(4);
+                installSystem();
+            });
+            
+            // 数据库连接测试
+            document.getElementById('test-db-connection').addEventListener('click', testDatabaseConnection);
+            
+            // 密码一致性检查
+            document.getElementById('admin-config-form').querySelector('input[name="confirm_password"]').addEventListener('input', function() {
+                const password = document.getElementById('admin-config-form').querySelector('input[name="admin_password"]').value;
+                const confirmPassword = this.value;
+                
+                if (password && confirmPassword && password !== confirmPassword) {
+                    this.setCustomValidity('两次输入的密码不一致');
+                } else {
+                    this.setCustomValidity('');
+                }
+            });
+            
+            // 初始化检查环境
+            checkEnvironment();
+        });
+        
+        // 检查系统是否已安装
+        function checkInstallStatus() {
+            fetch('/admin/install/checkInstall')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.code === 0) {
+                        // 系统已安装，跳转到已安装页面
+                        window.location.href = '/admin/install/Installed';
+                    }
+                })
+                .catch(error => {
+                    console.error('检查安装状态失败:', error);
+                });
+        }
+        
+        // 检查环境
+        function checkEnvironment() {
+            fetch('/admin/install/checkEnv')
+                .then(response => response.json())
+                .then(data => {
+                    const resultsContainer = document.getElementById('env-check-results');
+                    resultsContainer.innerHTML = '';
+                    
+                    let allPass = true;
+                    
+                    // 显示PHP版本
+                    const phpVersion = data.data.php_version;
+                    addEnvCheckItem(resultsContainer, `PHP版本 (当前: ${phpVersion.current})`, phpVersion.status);
+                    if (!phpVersion.status) allPass = false;
+                    
+                    // 显示扩展检查
+                    const extensions = ['curl', 'pdo', 'pdo_mysql', 'mbstring', 'redis', 'bcmath'];
+                    extensions.forEach(ext => {
+                        const check = data.data[`extension_${ext}`];
+                        addEnvCheckItem(resultsContainer, `PHP扩展: ${check.name}`, check.status);
+                        if (!check.status) allPass = false;
+                    });
+                    
+                    // 启用或禁用下一步按钮
+                    document.getElementById('btn-step1-next').disabled = !allPass;
+                })
+                .catch(error => {
+                    console.error('环境检查失败:', error);
+                    const resultsContainer = document.getElementById('env-check-results');
+                    resultsContainer.innerHTML = '<div class="alert alert-danger">环境检查失败，请刷新页面重试</div>';
+                });
+        }
+        
+        // 添加环境检查项
+        function addEnvCheckItem(container, label, status) {
+            const item = document.createElement('div');
+            item.className = `env-check-item ${status ? 'success' : 'error'}`;
+            item.innerHTML = `
+                <span>${label}</span>
+                <span class="status-icon ${status ? 'success' : 'error'}"></span>
+            `;
+            container.appendChild(item);
+        }
+        
+        // 测试数据库连接
+        function testDatabaseConnection() {
+            const form = document.getElementById('db-config-form');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            fetch('/admin/install/testDbConnection', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.code === 0) {
+                    alert('数据库连接成功！');
+                    document.getElementById('btn-step2-next').disabled = false;
+                } else {
+                    alert('数据库连接失败：' + data.message);
+                    document.getElementById('btn-step2-next').disabled = true;
+                }
+            })
+            .catch(error => {
+                console.error('测试数据库连接失败:', error);
+                alert('网络错误，请检查服务器连接');
+            });
+        }
+        
+        // 切换步骤显示
+        function showStep(stepNumber) {
+            // 隐藏所有步骤
+            document.querySelectorAll('.step-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // 隐藏所有指示器的活动状态
+            document.querySelectorAll('.step-item').forEach((item, index) => {
+                if (index < stepNumber - 1) {
+                    item.classList.add('active');
+                } else if (index === stepNumber - 1) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+            
+            // 显示当前步骤
+            document.getElementById(`step-${stepNumber}`).classList.add('active');
+        }
+        
+        // 执行系统安装
+        function installSystem() {
+            // 收集所有表单数据
+            const dbForm = document.getElementById('db-config-form');
+            const adminForm = document.getElementById('admin-config-form');
+            
+            const dbData = Object.fromEntries(new FormData(dbForm).entries());
+            const adminData = Object.fromEntries(new FormData(adminForm).entries());
+            
+            // 检查密码一致性
+            if (adminData.admin_password !== adminData.confirm_password) {
+                alert('两次输入的密码不一致');
+                showStep(3);
+                return;
+            }
+            
+            const installData = {
+                ...dbData,
+                admin_name: adminData.admin_name,
+                admin_phone: adminData.admin_phone,
+                admin_password: adminData.admin_password
+            };
+            
+            // 显示进度条
+            const progressBar = document.querySelector('.progress-bar');
+            const progressText = document.querySelector('.progress-text');
+            let progress = 0;
+            
+            // 模拟进度更新
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress > 90) progress = 90;
+                progressBar.style.width = `${progress}%`;
+                progressBar.setAttribute('aria-valuenow', progress);
+            }, 200);
+            
+            // 执行安装
+            fetch('/admin/install/install', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(installData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                clearInterval(progressInterval);
+                
+                if (data.code === 0) {
+                    // 安装成功
+                    progress = 100;
+                    progressBar.style.width = '100%';
+                    progressBar.setAttribute('aria-valuenow', 100);
+                    progressText.textContent = '安装完成！';
+                    
+                    // 隐藏进度条和安装中状态，显示重启倒计时
+                    setTimeout(() => {
+                        const progressContainer = document.querySelector('.progress-container');
+                        if (progressContainer) {
+                            progressContainer.style.display = 'none';
+                        }
+                        document.getElementById('installing-status').style.display = 'none';
+                        document.getElementById('restart-countdown').style.display = 'block';
+                    
+                        // 开始倒计时
+                        let seconds = 5;
+                        const countdownElement = document.getElementById('countdown-seconds');
+                        const countdownInterval = setInterval(() => {
+                            seconds--;
+                            countdownElement.textContent = seconds;
+                            
+                            if (seconds <= 0) {
+                                clearInterval(countdownInterval);
+                                // 倒计时结束，显示安装完成信息
+                                document.getElementById('restart-countdown').style.display = 'none';
+                                document.getElementById('install-complete').style.display = 'block';
+                                // 不自动跳转，让用户手动点击
+                            }
+                        }, 1000);
+                    }, 500);
+                } else {
+                    // 安装失败
+                    alert('安装失败：' + data.message);
+                    showStep(3);
+                }
+            })
+            .catch(error => {
+                clearInterval(progressInterval);
+                console.error('安装失败:', error);
+                alert('安装过程中出现错误，请检查服务器日志');
+                showStep(3);
+            });
+        }
+    </script>
+</body>
+</html>

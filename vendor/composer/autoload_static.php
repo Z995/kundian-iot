@@ -141,10 +141,11 @@ class ComposerStaticInit691f538563ac6695008ddc51b7722c80
         ),
         'think\\' => 
         array (
-            0 => __DIR__ . '/..' . '/topthink/think-orm/src',
-            1 => __DIR__ . '/..' . '/topthink/think-validate/src',
-            2 => __DIR__ . '/..' . '/topthink/think-container/src',
-            3 => __DIR__ . '/..' . '/topthink/think-helper/src',
+            0 => __DIR__ . '/..' . '/topthink/think-template/src',
+            1 => __DIR__ . '/..' . '/topthink/think-orm/src',
+            2 => __DIR__ . '/..' . '/topthink/think-validate/src',
+            3 => __DIR__ . '/..' . '/topthink/think-container/src',
+            4 => __DIR__ . '/..' . '/topthink/think-helper/src',
         ),
         'support\\' => 
         array (

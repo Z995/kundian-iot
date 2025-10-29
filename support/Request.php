@@ -1,15 +1,20 @@
 <?php
 /**
- * This file is part of webman.
- *
- * Licensed under The MIT License
- * For full copyright and license information, please see the MIT-LICENSE.txt
- * Redistributions of files must retain the above copyright notice.
- *
- * @author    walkor<walkor@workerman.net>
- * @copyright walkor<walkor@workerman.net>
- * @link      http://www.workerman.net/
- * @license   http://www.opensource.org/licenses/mit-license.php MIT License
+ * 坤典智慧农场V6
+ * @link https://www.cqkd.com
+ * @description 软件开发团队为 重庆坤典科技有限公司
+ * @description The software development team is Chongqing KunDian Technology Co., Ltd.
+ * @description 软件著作权归 重庆坤典科技有限公司 所有 软著登记号: 2021SR0143549
+ * @description 软件版权归 重庆坤典科技有限公司 所有
+ * @description The software copyright belongs to Chongqing KunDian Technology Co., Ltd.
+ * @description 本文件由重庆坤典科技授权予 重庆坤典科技 使用
+ * @description This file is licensed to 重庆坤典科技-www.cqkd.com
+ * @warning 这不是一个免费的软件，使用前请先获取正式商业授权
+ * @warning This is not a free software, please get the license before use.
+ * @warning 未经授权许可禁止转载分发，违者将追究其法律责任
+ * @warning It is prohibited to reprint and distribute without authorization, and violators will be investigated for legal responsibility
+ * @warning 未经授权许可禁止删除本段注释，违者将追究其法律责任
+ * @warning It is prohibited to delete this comment without license, and violators will be held legally responsible
  */
 
 namespace support;

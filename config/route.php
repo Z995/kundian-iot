@@ -70,7 +70,6 @@ Route::group('/admin', function () {
             Route::any('/setDeviceData', [DeviceController::class, 'setDeviceData']);
             Route::any('/getVariableLog', [DeviceController::class, 'getVariableLog']);
             Route::any('/getStatisticalChart', [DeviceController::class, 'getStatisticalChart']);
-            Route::any('/test', [DeviceController::class, 'test']);
 
             //设备模版
             Route::any('/getDeviceTemplateList', [DeviceTemplateController::class, 'getDeviceTemplateList']);
@@ -143,6 +142,7 @@ Route::group('/admin', function () {
 
         Route::group('/authorize', function () {//云端授权
             Route::any('/kunDianAuthorize', [AuthorizeController::class, 'kunDianAuthorize']);
+            Route::any('/kunDianSmsLoginCode', [AuthorizeController::class, 'kunDianSmsLoginCode']);
         });
 
         Route::group('/monitor', function () {//监控
@@ -172,9 +172,20 @@ Route::group('/admin', function () {
     })->middleware([
         \app\middleware\AuthToken::class,
     ]);
+
+    // 安装路由
+    Route::any('/install', [\app\controller\InstallController::class, 'index']);
+    Route::any('/install/index', [\app\controller\InstallController::class, 'index']);
+    Route::any('/install/checkInstall', [\app\controller\InstallController::class, 'checkInstall']);
+    Route::any('/install/checkEnv', [\app\controller\InstallController::class, 'checkEnv']);
+    Route::any('/install/testDbConnection', [\app\controller\InstallController::class, 'testDbConnection']);
+    Route::any('/install/install', [\app\controller\InstallController::class, 'install']);
+    Route::any('/install/Installed', [\app\controller\InstallController::class, 'Installed']);
 })->middleware([
     \app\middleware\AccessControl::class,
 ]);
+
+
 
 
 

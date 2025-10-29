@@ -1,5 +1,23 @@
 <?php
 
+/**
+ * 坤典智慧农场V6
+ * @link https://www.cqkd.com
+ * @description 软件开发团队为 重庆坤典科技有限公司
+ * @description The software development team is Chongqing KunDian Technology Co., Ltd.
+ * @description 软件著作权归 重庆坤典科技有限公司 所有 软著登记号: 2021SR0143549
+ * @description 软件版权归 重庆坤典科技有限公司 所有
+ * @description The software copyright belongs to Chongqing KunDian Technology Co., Ltd.
+ * @description 本文件由重庆坤典科技授权予 重庆坤典科技 使用
+ * @description This file is licensed to 重庆坤典科技-www.cqkd.com
+ * @warning 这不是一个免费的软件，使用前请先获取正式商业授权
+ * @warning This is not a free software, please get the license before use.
+ * @warning 未经授权许可禁止转载分发，违者将追究其法律责任
+ * @warning It is prohibited to reprint and distribute without authorization, and violators will be investigated for legal responsibility
+ * @warning 未经授权许可禁止删除本段注释，违者将追究其法律责任
+ * @warning It is prohibited to delete this comment without license, and violators will be held legally responsible
+ */
+
 
 namespace app\controller\admin\device;
 
@@ -12,6 +30,7 @@ use app\services\device\DeviceSubordinateServices;
 use app\services\device\DeviceSubordinateVariableLogServices;
 use app\services\device\DeviceSubordinateVariableServices;
 use app\services\label\LabelServices;
+use app\services\monitor\MonitorServices;
 use plugin\kundian\base\BaseController;
 use plugin\webman\gateway\servers\TimeServices;
 
@@ -57,6 +76,7 @@ class DeviceController extends BaseController
         $param["admin_id"] = $this->adminId();
         $result = (new DeviceServices())->get($param, [], ["template", 'subordinate.subordinate']);
         $result["label"] = (new LabelServices())->getLabelByIds($result["label_ids"]);
+        $result["monitor"] = (new MonitorServices())->getMonitorByIds($result["monitor_ids"]);
         return success($result);
     }
 
@@ -76,6 +96,7 @@ class DeviceController extends BaseController
             ["name", ""],
             ["code", ""],
             ["describe", ""],
+            ["monitor_ids", ""],
             ["label_ids", ""],
             ["location", ""],
             ["longitude", ""],
@@ -193,13 +214,5 @@ class DeviceController extends BaseController
         return success($result);
     }
 
-    public function test(){
 
-        $frame1="030304bf0709fc4bf7";
-//        (new AlarmTemplateTriggerServices())->trigger(1,44,29,501);
-        (new AlarmIndependenceTriggerServices())->trigger(1,44,501);
-//        $result1 = (new ModbusRTUServices())->parseFrame($frame1, 'bit',["bitPosition"=>7]);
-        return success();
-
-    }
 }

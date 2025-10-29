@@ -1,5 +1,23 @@
 <?php
 
+/**
+ * 坤典智慧农场V6
+ * @link https://www.cqkd.com
+ * @description 软件开发团队为 重庆坤典科技有限公司
+ * @description The software development team is Chongqing KunDian Technology Co., Ltd.
+ * @description 软件著作权归 重庆坤典科技有限公司 所有 软著登记号: 2021SR0143549
+ * @description 软件版权归 重庆坤典科技有限公司 所有
+ * @description The software copyright belongs to Chongqing KunDian Technology Co., Ltd.
+ * @description 本文件由重庆坤典科技授权予 重庆坤典科技 使用
+ * @description This file is licensed to 重庆坤典科技-www.cqkd.com
+ * @warning 这不是一个免费的软件，使用前请先获取正式商业授权
+ * @warning This is not a free software, please get the license before use.
+ * @warning 未经授权许可禁止转载分发，违者将追究其法律责任
+ * @warning It is prohibited to reprint and distribute without authorization, and violators will be investigated for legal responsibility
+ * @warning 未经授权许可禁止删除本段注释，违者将追究其法律责任
+ * @warning It is prohibited to delete this comment without license, and violators will be held legally responsible
+ */
+
 namespace app\services\device;
 
 use app\model\Admin;
@@ -12,6 +30,7 @@ use app\serve\RedisServices;
 use plugin\kundian\base\BaseServices;
 use plugin\webman\gateway\Events;
 use plugin\webman\gateway\servers\SortingDataServices;
+use support\Redis;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use think\exception\ValidateException;
 
@@ -43,6 +62,7 @@ class DeviceSubordinateVariableServices extends BaseServices
             if ($result) {
                 $ids[] = $result["id"];
                 $this->update($result["id"], $data);
+                self::delRedisVariableInfo($result["id"]);
             } else {
                 $date = date("Y-m-d H:i:s");
                 $data['template_subordinate_variable_id'] = $v_v["id"];
@@ -59,6 +79,44 @@ class DeviceSubordinateVariableServices extends BaseServices
         }
         if (!empty($all)) {
             $this->saveAll($all);
+        }
+    }
+
+    /**
+     * 通过缓存获取详情
+     * @param $variable_id
+     * @return array|mixed
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\DbException
+     * @throws \think\db\exception\ModelNotFoundException
+     */
+    public static function getRedisVariableInfo($variable_id){
+        $key= "VariableInfo:" . $variable_id;
+        $variable=Redis::get($key);
+        if (empty($variable)){
+            $variable =(new self())->getOne(["id" => $variable_id], '*', ['templateVariable', "variableLog","device.gateway","subordinate.subordinate"]);
+            $expire=rand(30000, 35000);//防止大面积同一时间过期
+            if (!empty($variable)&&!empty($variable["device"])) {
+                $variable=$variable->toArray();
+            }else{
+                $variable=[];
+            }
+            Redis::set($key,json_encode($variable),"Ex", $expire);
+        }else{
+            $variable=json_decode($variable,true);
+        }
+        return $variable;
+    }
+
+    /**
+     * 删除缓存
+     * @param $variable_id
+     * @return void
+     */
+    public static function delRedisVariableInfo($variable_id){
+        $key= "VariableInfo:" . $variable_id;
+        if (Redis::exists($key)){
+            Redis::Del($key);
         }
     }
 
@@ -92,7 +150,8 @@ class DeviceSubordinateVariableServices extends BaseServices
 
     public function getVariableInfo($variable_id)
     {
-        $variable = $this->getOne(["id" => $variable_id], "*", ['device.gateway', "subordinate.subordinate", "templateVariable"]);
+//        $variable = $this->getOne(["id" => $variable_id], "*", ['device.gateway', "subordinate.subordinate", "templateVariable"]);
+        $variable = $this->getRedisVariableInfo($variable_id);
         if (!$variable) {
             throw new  ValidateException("设备不存在");
         }

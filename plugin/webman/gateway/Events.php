@@ -1,5 +1,23 @@
 <?php
 
+/**
+ * 坤典智慧农场V6
+ * @link https://www.cqkd.com
+ * @description 软件开发团队为 重庆坤典科技有限公司
+ * @description The software development team is Chongqing KunDian Technology Co., Ltd.
+ * @description 软件著作权归 重庆坤典科技有限公司 所有 软著登记号: 2021SR0143549
+ * @description 软件版权归 重庆坤典科技有限公司 所有
+ * @description The software copyright belongs to Chongqing KunDian Technology Co., Ltd.
+ * @description 本文件由重庆坤典科技授权予 重庆坤典科技 使用
+ * @description This file is licensed to 重庆坤典科技-www.cqkd.com
+ * @warning 这不是一个免费的软件，使用前请先获取正式商业授权
+ * @warning This is not a free software, please get the license before use.
+ * @warning 未经授权许可禁止转载分发，违者将追究其法律责任
+ * @warning It is prohibited to reprint and distribute without authorization, and violators will be investigated for legal responsibility
+ * @warning 未经授权许可禁止删除本段注释，违者将追究其法律责任
+ * @warning It is prohibited to delete this comment without license, and violators will be held legally responsible
+ */
+
 
 namespace plugin\webman\gateway;
 
@@ -23,6 +41,7 @@ class Events
     static $WS_PORT = ''; //ws端口
     static $WSS_PORT = ''; //wss端口
     static $TEXT_PORT = ''; //TEXT端口
+    static $UDP_PORT = ''; //TEXT端口
     static $MAIN_CODE = ''; //超级权限uid
     static $SUPER_ADMIN_ID = ''; //超级管理员ID
 
@@ -41,6 +60,9 @@ class Events
         try {
             if ($message=="0000"){
                 return  false;
+            }
+            if ($_SERVER['GATEWAY_PORT'] == self::$UDP_PORT){
+                var_dump(123133);
             }
             //TCP协议 websocket
             if (in_array($_SERVER['GATEWAY_PORT'], [self::$TCP_PORT, self::$WS_PORT, self::$WSS_PORT])) {
@@ -90,7 +112,7 @@ class Events
                             }
                         }
                         //kd 定时器
-                        TimeServices::createTimer($client_id, $message);
+                        TimeServices::createTimer($client_id, $message,$my);
                         //推送在线状态
                         self::pushDeviceIsOnlineToMember($message, self::isOnlineByUid($message));
                         return true;

@@ -29,22 +29,60 @@
 ## 安装步骤
 
 ### 1. 下载代码
-克隆或下载本项目代码到服务器上。
+已宝塔为例：创建站点，克隆或下载本项目代码到服务器上，设置根目录为public。并放行端口6262
+![输入图片说明](readme/bt.png)
+### 2. 配置伪静态
+```
+location /admin/ {
+  proxy_pass http://127.0.0.1:6767;
+  proxy_set_header Host $host;
+  proxy_set_header X-Real-IP $remote_addr;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header X-Forwarded-Proto $scheme;
+}
 
-### 2. 导入数据库
-将根目录下的`iot.sql`文件导入到MySQL数据库中。
+location /ws {
+    proxy_pass http://127.0.0.7:6161;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_read_timeout 86400s;
+    proxy_send_timeout 86400s;
+    proxy_connect_timeout 4s;
+}
 
+location /wss {
+    proxy_pass https://127.0.0.1:6363;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_read_timeout 86400s;
+    proxy_send_timeout 86400s;
+}
+
+location / {
+    try_files $uri $uri/ /index.html;
+}
+```
 ### 3. 配置环境变量
 在项目根目录创建`.env`文件，复制`.env.example`文件的内容并根据实际环境修改配置：
 ```bash
 cp .env.example .env
 ```
-编辑`.env`文件，修改以下关键配置项：
+编辑`.env`文件，修改以下关键配置项（数据库可以通过后面引导页配置，redis必须配置）：
 ```
 # Redis配置
 REDIS_HOST = 127.0.0.1
 REDIS_PORT = 6379
-REDIS_PWD = null
+REDIS_PWD = 
 REDIS_SELECT = 1
 
 # 数据库配置
@@ -58,11 +96,14 @@ CHARSET = utf8
 PREFIX = kd_
 
 # 证书配置（用于WSS协议）
-ssl_cert = /www/server/panel/vhost/cert/iot-test.cqkd.com/fullchain.pem
-ssl_key = /www/server/panel/vhost/cert/iot-test.cqkd.com/privkey.pem
+ssl_cert = 
+ssl_key = 
 ```
-
-### 5. 启动项目
+### 5. 安装redis，去掉禁用函数
+```bash
+pcntl_signal_dispatch,pcntl_signal,pcntl_alarm,pcntl_fork,pcntl_wait,proc_open,shell_exec,exec,putenv
+```
+### 6. 启动项目
 在项目根目录执行以下命令启动系统：
 ```bash
 php start.php start
@@ -72,6 +113,11 @@ php start.php start
 ```bash
 php start.php start 
 ```
+### 7. 安装引导
+```
+申请ssl证书，访问安装页面域名+/admin/install 完成之前所有步骤后会显示出以下页面
+```
+![输入图片说明](readme/install.png)
 
 ## 端口配置
 系统使用的主要端口包括：

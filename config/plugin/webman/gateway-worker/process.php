@@ -75,6 +75,7 @@ return [
             },
         ]]
     ],
+
     'worker' => [
         'handler'     => BusinessWorker::class,
         'count'       => cpu_count() * 4,

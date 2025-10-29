@@ -424,6 +424,15 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'topthink/think-template' => array(
+            'pretty_version' => 'v3.0.2',
+            'version' => '3.0.2.0',
+            'reference' => '0b88bd449f0f7626dd75b05f557c8bc208c08b0c',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../topthink/think-template',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'topthink/think-validate' => array(
             'pretty_version' => 'v3.0.7',
             'version' => '3.0.7.0',

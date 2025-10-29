@@ -7,7 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'voku\\' => array($vendorDir . '/voku/portable-ascii/src/voku'),
-    'think\\' => array($vendorDir . '/topthink/think-orm/src', $vendorDir . '/topthink/think-validate/src', $vendorDir . '/topthink/think-container/src', $vendorDir . '/topthink/think-helper/src'),
+    'think\\' => array($vendorDir . '/topthink/think-template/src', $vendorDir . '/topthink/think-orm/src', $vendorDir . '/topthink/think-validate/src', $vendorDir . '/topthink/think-container/src', $vendorDir . '/topthink/think-helper/src'),
     'support\\' => array($vendorDir . '/webman/think-orm/src/support', $vendorDir . '/webman/redis/src/support', $vendorDir . '/workerman/webman-framework/src/support'),
     'app\\View\\Components\\' => array($baseDir . '/app/view/components'),
     'app\\' => array($baseDir . '/app'),

@@ -6,6 +6,7 @@ return [
     'tcp_port' => 6262, // TCP协议监听端口
     'ws_port' => 6161, // WebSocket协议监听端口(ws)
     'wss_port' => 6363, // WebSocket协议监听端口(wss)
+    'udp_port' => 5060, // WebSocket协议监听端口(wss)
     'mqtt_port' => 1883, // MQTT协议监听端口,该端口是你安装的emqx或其他MQTT服务器的端口
     'mqtt_client_port' => 5103, // MQTT客户端所在进程的监听端口,用于管理mqtt设备的订阅、发布和销毁
     'mqtt_client_username' => 'admin', // MQTT客户端的管理员用户名,需跟emqx的配置保持一致:访问控制-客户端认证

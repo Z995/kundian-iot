@@ -1,14 +1,23 @@
 <?php
-// 坤典开源物联网系统
-// @link `https://www.cqkd.com` 
-// @description 软件开发团队为 重庆坤典科技有限公司
-// @description The software development team is Chongqing Kundian Technology Co., Ltd.
-// @description 软件著作权归 重庆坤典科技有限公司 所有 软著登记号: 2021SR0143549
-// @description 软件版权归 重庆坤典科技有限公司 所有
-// @description The software copyright belongs to Chongqing Kundian Technology Co., Ltd.
-// @warning 未经授权许可禁止删除本段注释，违者将追究其法律责任
-// @warning It is prohibited to delete this comment without license, and violators will be held legally responsible
-// @Date: 2025/10/9/上午10:09
+
+/**
+ * 坤典智慧农场V6
+ * @link https://www.cqkd.com
+ * @description 软件开发团队为 重庆坤典科技有限公司
+ * @description The software development team is Chongqing KunDian Technology Co., Ltd.
+ * @description 软件著作权归 重庆坤典科技有限公司 所有 软著登记号: 2021SR0143549
+ * @description 软件版权归 重庆坤典科技有限公司 所有
+ * @description The software copyright belongs to Chongqing KunDian Technology Co., Ltd.
+ * @description 本文件由重庆坤典科技授权予 重庆坤典科技 使用
+ * @description This file is licensed to 重庆坤典科技-www.cqkd.com
+ * @warning 这不是一个免费的软件，使用前请先获取正式商业授权
+ * @warning This is not a free software, please get the license before use.
+ * @warning 未经授权许可禁止转载分发，违者将追究其法律责任
+ * @warning It is prohibited to reprint and distribute without authorization, and violators will be investigated for legal responsibility
+ * @warning 未经授权许可禁止删除本段注释，违者将追究其法律责任
+ * @warning It is prohibited to delete this comment without license, and violators will be held legally responsible
+ */
+
 
 namespace app\serve;
 
@@ -177,25 +186,26 @@ class TriggerServe
     public static function trigger($trigger,$variable_id,$value,$type)
     {
         $DeviceSubordinateVariableServices=new DeviceSubordinateVariableServices();
-        $variable=$DeviceSubordinateVariableServices->get(["id"=>$variable_id],[],["device","subordinate.subordinate"]);
-        $variable_is_warning=$variable["is_warning"];
+//        $variable=$DeviceSubordinateVariableServices->get(["id"=>$variable_id],[],["device","subordinate.subordinate"]);
+        $variable=DeviceSubordinateVariableServices::getRedisVariableInfo($variable_id);
+//        $variable_is_warning=$variable["is_warning"];
         foreach ($trigger as $v){
             $admin_id=$v["admin_id"];
             if ($v["is_alarm"]==1&&!empty($admin_id)){ //是否报警
-                if ($variable_is_warning==0){
+//                if ($variable_is_warning==0){
                     [$is_warning,$msg]=self::warning($v,$value);
                     if ($is_warning){//是否警报
                         TextProtocolServices::sendMsg($admin_id,json_encode(["type"=>SortingDataServices::$Alarm,"code"=>200,"msg"=>$v["alarm_push"],"data"=>[]]));
                         $DeviceSubordinateVariableServices->update($variable_id,["is_warning"=>1]);
                         (new AlarmWarningLogServices())->saveWarningLog($v,$variable,$msg,$value,$type,1);
                     }
-                }else{
+//                }else{
                     if (self::recover($v,$value)){//是否恢复
                         TextProtocolServices::sendMsg($admin_id,json_encode(["type"=>SortingDataServices::$Alarm,"code"=>200,"msg"=>$v["alarm_push"],"data"=>[]]));
                         $DeviceSubordinateVariableServices->update($variable_id,["is_warning"=>0]);
                         (new AlarmWarningLogServices())->saveWarningLog($v,$variable,"",$value,$type,0,1);
                     }
-                }
+//                }
             }
             if ($v["is_linkage"]==1){
                 [$is_warning,$msg]=self::warning($v,$value);

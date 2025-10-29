@@ -39,7 +39,8 @@
     "workerman/mqtt": "^2.2",
     "workerman/http-client": "^3.0",
     "ext-bcmath": "*",
-    "ext-curl": "*"
+    "ext-curl": "*",
+    "topthink/think-template": "^3.0"
   },
   "suggest": {
     "ext-event": "For better performance. "

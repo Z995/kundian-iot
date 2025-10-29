@@ -1,6 +1,17 @@
 /*
- Source Server         : 坤典物联网iot
+ Navicat Premium Data Transfer
+
+ Source Server         : 物联网iot
  Source Server Type    : MySQL
+ Source Server Version : 50744
+ Source Host           : 60.247.225.87:3306
+ Source Schema         : iot
+
+ Target Server Type    : MySQL
+ Target Server Version : 50744
+ File Encoding         : 65001
+
+ Date: 28/10/2025 14:22:46
 */
 
 SET NAMES utf8mb4;
@@ -20,10 +31,6 @@ CREATE TABLE `kd_admin`  (
   `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '物联网-账号' ROW_FORMAT = Dynamic;
--- ----------------------------
--- Records of kd_admin
--- ----------------------------
-INSERT INTO `kd_admin` VALUES (1, 'admin', '18723237733', '$2y$10$WI6HZ6o1AbC0EQ41UBlUDulhqVaqxDqe8q06MQ5QF8UWrsT6mrE86', 1, 0, '2025-05-27 16:01:20');
 
 -- ----------------------------
 -- Table structure for kd_alarm
@@ -148,7 +155,7 @@ CREATE TABLE `kd_alarm_warning_log`  (
   `create_time` datetime NULL DEFAULT NULL,
   `update_time` datetime NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '物联网-设备联动记录' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '物联网-设备联动记录' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for kd_device
@@ -159,6 +166,7 @@ CREATE TABLE `kd_device`  (
   `admin_id` int(11) NULL DEFAULT 0 COMMENT '管理员ID',
   `gateway_id` int(11) NULL DEFAULT NULL COMMENT '网关ID',
   `template_id` int(11) NULL DEFAULT NULL COMMENT '设备模版ID',
+  `monitor_ids` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '监控绑定',
   `name` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '设备名称',
   `code` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '设备编号',
   `describe` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '设备描述',
@@ -213,7 +221,7 @@ CREATE TABLE `kd_device_online_log`  (
   `create_time` datetime NULL DEFAULT NULL,
   `update_time` datetime NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 573 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '物联网-设备' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 1429 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '物联网-设备' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for kd_device_product
@@ -254,7 +262,7 @@ CREATE TABLE `kd_device_product_variable`  (
   `create_time` datetime NULL DEFAULT NULL,
   `update_time` datetime NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 58 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '物联网-设备从机变量' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 57 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '物联网-设备从机变量' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for kd_device_subordinate
@@ -312,10 +320,8 @@ CREATE TABLE `kd_device_subordinate_variable_log`  (
   `function_code` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '操作 3读取',
   `val` longtext CHARACTER SET utf8 COLLATE utf8_general_ci NULL COMMENT '值',
   `create_time` datetime NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE,
-  INDEX `member_id_device_id_del`(`device_id`) USING BTREE,
-  INDEX `idx_device_time`(`device_id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 79967 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '物联网-设备数据日志' ROW_FORMAT = Dynamic;
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 196025 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '物联网-设备数据日志' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for kd_device_template
@@ -454,7 +460,7 @@ CREATE TABLE `kd_gateway_log`  (
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `member_id_device_id_del`(`gateway_id`, `del`) USING BTREE,
   INDEX `idx_device_time`(`gateway_id`, `year`, `month`, `day`, `del`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 145723 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '物联网-网关全日志' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 450541 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '物联网-网关全日志' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for kd_gateway_marque
@@ -498,7 +504,115 @@ CREATE TABLE `kd_gateway_online_log`  (
   `create_time` datetime NULL DEFAULT NULL,
   `update_time` datetime NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 8067 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '物联网-网关上下线记录' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 12424 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '物联网-网关上下线记录' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for kd_gb28181_channel
+-- ----------------------------
+DROP TABLE IF EXISTS `kd_gb28181_channel`;
+CREATE TABLE `kd_gb28181_channel`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `channel_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '通道ID',
+  `channel_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '通道名称',
+  `device_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '所属设备ID',
+  `manufacturer` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '制造商',
+  `model` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '型号',
+  `owner` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '负责人',
+  `civil_code` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '行政区域',
+  `address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '安装地址',
+  `parental` tinyint(4) NULL DEFAULT 0 COMMENT '是否有父设备',
+  `parent_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '父设备ID',
+  `sip_port` int(11) NULL DEFAULT 5060 COMMENT 'SIP端口',
+  `status` tinyint(4) NULL DEFAULT 0 COMMENT '通道状态：0=离线，1=在线',
+  `longitude` decimal(10, 6) NULL DEFAULT NULL COMMENT '经度',
+  `latitude` decimal(10, 6) NULL DEFAULT NULL COMMENT '纬度',
+  `rtsp_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT 'RTSP流地址',
+  `rtmp_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT 'RTMP流地址',
+  `flv_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT 'FLV流地址',
+  `hls_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT 'HLS流地址',
+  `is_record` tinyint(4) NULL DEFAULT 0 COMMENT '是否录制',
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '描述',
+  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
+  `delete_time` datetime NULL DEFAULT NULL COMMENT '删除时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_channel_id`(`channel_id`) USING BTREE,
+  INDEX `idx_device_id`(`device_id`) USING BTREE,
+  INDEX `idx_status`(`status`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物联网-GB28181通道表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for kd_gb28181_device
+-- ----------------------------
+DROP TABLE IF EXISTS `kd_gb28181_device`;
+CREATE TABLE `kd_gb28181_device`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `device_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '设备ID',
+  `device_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '设备名称',
+  `domain` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '域ID',
+  `ip` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '设备IP',
+  `port` int(11) NULL DEFAULT 5060 COMMENT 'SIP端口',
+  `username` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '用户名',
+  `password` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '密码',
+  `status` tinyint(4) NULL DEFAULT 0 COMMENT '设备状态：0=离线，1=在线',
+  `register_time` datetime NULL DEFAULT NULL COMMENT '注册时间',
+  `last_heartbeat_time` datetime NULL DEFAULT NULL COMMENT '最后心跳时间',
+  `manufacturer` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '制造商',
+  `model` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '型号',
+  `channel_count` int(11) NULL DEFAULT 0 COMMENT '通道数量',
+  `longitude` decimal(10, 6) NULL DEFAULT NULL COMMENT '经度',
+  `latitude` decimal(10, 6) NULL DEFAULT NULL COMMENT '纬度',
+  `address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '设备地址',
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '描述',
+  `auto_register` tinyint(4) NULL DEFAULT 0 COMMENT '是否自动注册',
+  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
+  `is_del` int(1) NULL DEFAULT 0 COMMENT '删除时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_device_id`(`device_id`) USING BTREE,
+  INDEX `idx_status`(`status`) USING BTREE,
+  INDEX `idx_register_time`(`register_time`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物联网-GB28181设备表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for kd_gb28181_device_log
+-- ----------------------------
+DROP TABLE IF EXISTS `kd_gb28181_device_log`;
+CREATE TABLE `kd_gb28181_device_log`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `device_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '设备ID',
+  `channel_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '通道ID',
+  `operation_type` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '操作类型：register(注册),unregister(注销),query(查询),preview(预览),playback(回放),ptz(云台控制),snapshot(截图),record(录制)',
+  `operation_desc` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '操作描述',
+  `operation_result` tinyint(4) NULL DEFAULT 0 COMMENT '操作结果：0=失败，1=成功',
+  `error_code` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '错误代码',
+  `error_msg` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '错误信息',
+  `operation_time` datetime NULL DEFAULT NULL COMMENT '操作时间',
+  `created_at` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_device_id`(`device_id`) USING BTREE,
+  INDEX `idx_operation_type`(`operation_type`) USING BTREE,
+  INDEX `idx_operation_time`(`operation_time`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物联网-GB28181设备操作日志表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for kd_gb28181_preset
+-- ----------------------------
+DROP TABLE IF EXISTS `kd_gb28181_preset`;
+CREATE TABLE `kd_gb28181_preset`  (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `device_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '设备ID',
+  `channel_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '通道ID',
+  `preset_id` int(11) NOT NULL COMMENT '预置位ID',
+  `preset_name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '预置位名称',
+  `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL COMMENT '描述',
+  `create_time` datetime NULL DEFAULT NULL COMMENT '创建时间',
+  `update_time` datetime NULL DEFAULT NULL COMMENT '更新时间',
+  `delete_time` datetime NULL DEFAULT NULL COMMENT '删除时间',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_channel_preset`(`channel_id`, `preset_id`) USING BTREE,
+  INDEX `idx_device_id`(`device_id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物联网-GB28181预置位表' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for kd_iot
@@ -608,7 +722,7 @@ CREATE TABLE `kd_monitor`  (
   `latitude` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '纬度',
   `is_del` int(1) NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 193 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 195 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '物联网-监控' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for kd_monitor_auto
@@ -625,7 +739,7 @@ CREATE TABLE `kd_monitor_auto`  (
   `last_time` int(11) NULL DEFAULT NULL,
   `status` tinyint(1) NULL DEFAULT 1 COMMENT '是否启用\r\n1 启用\r\n2 未启用',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 26 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '设备 - 监控自动截图' ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 26 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '物联网 - 监控自动配置' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for kd_system_config

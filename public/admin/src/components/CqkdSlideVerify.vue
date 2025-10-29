@@ -1,0 +1,80 @@
+<!-- 坤典物联 -->
+<!-- @link https://www.cqkundian.com -->
+<!-- @description 软件开发团队为 重庆坤典科技有限公司 -->
+<!-- @description The software development team is Chongqing Kundian Technology Co., Ltd. -->
+<!-- @description 软件著作权归 重庆坤典科技有限公司 所有 软著登记号: 2021SR0143549 -->
+<!-- @description 软件版权归 重庆坤典科技有限公司 所有 -->
+<!-- @description The software copyright belongs to Chongqing Kundian Technology Co., Ltd. -->
+<!-- @description File path and name:   kundian_iot_admin/components/CqkdSlideVerify.vue-->
+<!-- @description 本文件由重庆坤典科技授权予 重庆坤典科技 使用 -->
+<!-- @description This file is licensed to 重庆坤典科技-www.cqkundian.com -->
+<!-- @warning 这不是一个免费的软件，使用前请先获取正式商业授权 -->
+<!-- @warning This is not a free software, please get the license before use. -->
+<!-- @warning 未经授权许可禁止转载分发，违者将追究其法律责任 -->
+<!-- @warning It is prohibited to reprint and distribute without authorization, and violators will be investigated for legal responsibility -->
+<!-- @warning 未经授权许可禁止删除本段注释，违者将追究其法律责任 -->
+<!-- @warning It is prohibited to delete this comment without license, and violators will be held legally responsible -->
+<!-- @time:2025-08-22 10:34:36  -->
+<template>
+<div v-if="state.show">
+	<a-modal hide-title v-model:visible="state.show" width="360px" :footer="null" :mask-closable="false">
+		<div class="verify-box">
+			<i class="ri-close-line" @click="state.show =false"></i>
+			<slider-verify
+				@onSuccess="success"
+				@onError="error">
+			</slider-verify>
+		</div>
+	</a-modal>
+</div>
+</template>
+
+<script setup>
+
+import { reactive } from 'vue';
+import { Message } from '@arco-design/web-vue';
+const emits = defineEmits(['success'])
+const state = reactive({
+	show:false
+})
+
+function show(){
+	state.show = true
+}
+
+/**
+ * 成功回调
+ */
+const success = (verifyResult) => {
+	state.show = false;
+	emits('success', verifyResult.verify);
+};
+
+/**
+ * 失败回调
+ * @param verifyResult
+ */
+const error = (verifyResult) => {
+	Message.error(verifyResult?.message || '验证失败')
+};
+
+
+defineExpose({
+	show
+})
+</script>
+
+<style lang="scss" scoped>
+.verify-box{
+	width: 100%;
+	height: 100%;
+	position: relative;
+	.ri-close-line{
+		font-size: 20px;
+		position: absolute;
+		top: -25px;
+		right: -19px;
+		cursor: pointer;
+	}
+}
+</style>
