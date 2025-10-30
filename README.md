@@ -21,7 +21,7 @@
 5. **数据转发**：可以实现两个或多个设备之间的相互转发，如：想让设备采集的数据直接发送到网页websocket，用转发即可简单实现
 
 ## 环境要求
-- PHP >= 8.1
+- PHP == 8.2
 - MySQL >= 5.7
 - Redis >= 4.0
 
@@ -29,7 +29,15 @@
 ## 安装步骤
 
 ### 1. 下载代码
-已宝塔为例：创建站点，克隆或下载本项目代码到服务器上，设置根目录为public。并放行端口6262
+已宝塔为例：
+创建站点，
+克隆或下载本项目代码到服务器上，
+设置根目录为public。
+放行端口6262。
+去掉禁用函数
+```bash
+pcntl_signal_dispatch,pcntl_signal,pcntl_alarm,pcntl_fork,pcntl_wait,proc_open,shell_exec,exec,putenv
+```
 ![输入图片说明](readme/bt.png)
 ### 2. 配置伪静态
 ```
@@ -99,10 +107,8 @@ PREFIX = kd_
 ssl_cert = 
 ssl_key = 
 ```
-### 5. 安装redis，去掉禁用函数
-```bash
-pcntl_signal_dispatch,pcntl_signal,pcntl_alarm,pcntl_fork,pcntl_wait,proc_open,shell_exec,exec,putenv
-```
+### 5. 安装redis，和redis插件
+
 ### 6. 启动项目
 在项目根目录执行以下命令启动系统：
 ```bash

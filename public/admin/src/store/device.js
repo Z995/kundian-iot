@@ -17,7 +17,15 @@ export const useDeviceStore = defineStore('device', () => {
 	})
 	
 	function connect(url,device_code=""){
-		state.url = url || ('wss://'+window.location.hostname+'/wss')
+		if( url ){
+			state.url = url
+		}else{
+			let local_url = 'wss://'+window.location.hostname+'/wss'
+			if( window.location.port !=80 || window.location.port !=443){
+				local_url = `${local_url}:${window.location.port}`
+			}
+			state.url = local_url
+		}
 		console.log('SOCKET_URL',state.url);
 		state.device_code = device_code || ""	//保存当前操作的设备号
 		//判断当前连接是否正常或者是否已连接

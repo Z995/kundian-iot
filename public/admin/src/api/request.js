@@ -29,8 +29,11 @@ let base_url = import.meta.env.VITE_API_URL  	//正式环境
 //正式环境
 if( import.meta.env.MODE !='development'){
 	base_url = 'https://'+window.location.hostname
+	// 访问域名有端口的情况
+	if( window.location.port !=80 || window.location.port !=443){
+		base_url = `${base_url}:${window.location.port}`
+	}
 }
-
 console.log('接口地址',base_url);
 
 const service = axios.create({
