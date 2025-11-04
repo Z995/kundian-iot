@@ -42,7 +42,7 @@ class Base
 
         $this->ak = $config['kun_dian_cloud_key'];
         $this->ac = $config['kun_dian_cloud_secret'];
-        $this->url = getenv('PASS_DOMAIN')??"https://cloud.cqkundian.com"."/index.php";
+        $this->url = (getenv('PASS_DOMAIN')??"https://cloud.cqkundian.com")."/index.php";
         $this->client = new \Workerman\Http\Client();
     }
 
