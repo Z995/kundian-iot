@@ -1,0 +1,172 @@
+{
+  "s_aen": 1,		//连接服务器A
+  "sys_wmod": 4,	//工作模式 1：NET模式，4：HTTP透传模式
+  "s_amod": 1,		//Socket A连接类型 1：TCP 2：UDP 3：MQTT
+  "s_aport": 2317,	//Socket A目标端口
+  "s_ahost": "socket.usr.cn", //Socket A目标地址
+  "s_altp": 0,		//Socket A连接方式 0：长连接 1：短连接
+  "s_astto": 10,	//Socket A短连接超时时间(秒)
+  "sys_tmbsen": 0,	//ModbusRTU转TCP协议
+  "mqt0_wkmod": 0,	//MQTT1 模式 0:常规MQTT 1:阿里云
+  "mqt0_ver": 1,	//MQTT1 协议版本 0:3.1 1: 3.1.1
+  "mqt0_user": "usr.cn",	//MQTT1 用户名
+  "mqt0_pwd": "usr.cn",		//MQTT1 密码
+  "mqt0_pfen": 0,		//MQTT1 传输模式 0:纯透传模式 1:分发模式
+  "mqt0_cid": "sys_sn_01",	//MQTT1 Client ID 
+  "mqt0_alive": 60,		//MQTT1 心跳时间 (秒)
+  "ali0_reg": "cn-shanghai",//ALI1 地域信息
+  "ali0_pky": "\"\"",	//ALI1 产品密钥
+  "ali0_dnm": "\"\"",	//ALI1 设备名称
+  "ali0_did": "\"\"",	//ALI1 设备ID
+  "ali0_dsc": "\"\"",	//ALI1 设备密钥
+  "mqt0_wflag": 1,		//MQTT1 遗嘱消息
+  "mqt0_wtp": "/will",	//遗嘱主题名称
+  "mqt0_wqos": 0,		//遗嘱消息QoS等级 0,1,2
+  "mqt0_wmsg": "offline",	//遗嘱消息内容
+  "mqt0_wret": 1,		//启用遗嘱消息保留
+  "mqt0_clse": 1,		//MQTT1 清除会话
+  "mqt0_sen1": 0,		//MQTT1 订阅主题1
+  "mqt0_stp1": "SubTopic1",	//订阅主题1 Topic
+  "mqt0_sqos1": 0,
+  "mqt0_sen2": 0,
+  "mqt0_stp2": "SubTopic2",
+  "mqt0_sqos2": 0,
+  "mqt0_sen3": 0,
+  "mqt0_stp3": "SubTopic3",
+  "mqt0_sqos3": 0,
+  "mqt0_sen4": 0,
+  "mqt0_stp4": "SubTopic4",
+  "mqt0_sqos4": 0,
+  "mqt0_pen1": 0,
+  "mqt0_ptp1": "PubTopic1",
+  "mqt0_pqos1": 0,
+  "mqt0_pret1": 0,
+  "mqt0_pen2": 0,
+  "mqt0_ptp2": "PubTopic2",
+  "mqt0_pqos2": 0,
+  "mqt0_pret2": 0,
+  "mqt0_pen3": 0,
+  "mqt0_ptp3": "PubTopic3",
+  "mqt0_pqos3": 0,
+  "mqt0_pret3": 0,
+  "mqt0_pen4": 0,
+  "mqt0_ptp4": "PubTopic4",
+  "mqt0_pqos4": 0,
+  "mqt0_pret4": 0,
+  "r0_en": 0,		//启用注册包
+  "r0_snd": 0,		//注册包发送方式 0：与服务器建立连接时向服务器发送一次，1：向服务器发送的每个数据包前都加上注册包 2：同时支持以上两种
+  "r0_type": 3,		//注册包数据类型0:ICCID码 1：IMEI码 2：SN码 3：用户自定义内容
+  "r0_data": "7777772e7573722e636e",	//用户自定义内容
+  "cld_name": "12345678901234567890",
+  "cld_pass": "12345678",
+  "htp_type": 0,	//HTTP请求方式 0:GET 1:POST
+  "htp_url": "/1.php[3F]",	//HTTP请求URL
+  "s_hhost": "socket.usr.cn",	//HTTP服务器地址
+  "s_hport": 80,		//HTTP服务器端口
+  "htp_tmout": 10,		//短连接超时时间
+  "htp_head": "Connection: close[0D][0A]",	//HTTP请求头信息
+  "htp_cuthead": 1,	//过滤HTTP头信息
+  "sm_num": "1008610010",	//目标电话号码
+  "sm_filt": 1,		//短信来源号码过滤
+  "sm_vlten": 1,
+  "ssl0_en": 0,
+  "ssl0_auth": 2,
+  "ssl0_ca": "\"\"",
+  "ssl0_crt": "\"\"",
+  "ssl0_key": "\"\"",
+  "s_ben": 0,
+  "s_bmod": 1,	//Socket B连接类型 1：TCP 2：UDP 3：MQTT
+  "s_bhost": "socket.usr.cn",	//Socket B目标地址
+  "s_bport": 2317,	//Socket B目标端口
+  "r1_en": 0,
+  "r1_snd": 0,
+  "r1_type": 3,
+  "r1_data": "7777772e7573722e636e",
+  "mqt1_wkmod": 0,
+  "mqt1_ver": 1,
+  "mqt1_pwd": "usr.cn",
+  "mqt1_cid": "sys_sn_02",
+  "mqt1_pfen": 0,
+  "mqt1_alive": 60,
+  "mqt1_user": "usr.cn",
+  "mqt1_clse": 1,
+  "ali1_reg": "cn-shanghai",
+  "ali1_pky": "\"\"",
+  "ali1_dnm": "\"\"",
+  "ali1_dsc": "\"\"",
+  "ali1_did": "\"\"",
+  "mqt1_wflag": 0,
+  "mqt1_wtp": "/will",
+  "mqt1_wqos": 0,
+  "mqt1_wmsg": "offline",
+  "mqt1_wret": 1,
+  "mqt1_sen1": 0,
+  "mqt1_stp1": "SubTopic1",
+  "mqt1_sqos1": 0,
+  "mqt1_sen2": 0,
+  "mqt1_stp2": "SubTopic2",
+  "mqt1_sqos2": 0,
+  "mqt1_sen3": 0,
+  "mqt1_stp3": "SubTopic3",
+  "mqt1_sqos3": 0,
+  "mqt1_sen4": 0,
+  "mqt1_stp4": "SubTopic4",
+  "mqt1_sqos4": 0,
+  "mqt1_pen1": 0,
+  "mqt1_ptp1": "PubTopic1",
+  "mqt1_pqos1": 0,
+  "mqt1_pret1": 0,
+  "mqt1_pen2": 0,
+  "mqt1_ptp2": "PubTopic2",
+  "mqt1_pqos2": 0,
+  "mqt1_pret2": 0,
+  "mqt1_pen3": 0,
+  "mqt1_ptp3": "PubTopic3",
+  "mqt1_pqos3": 0,
+  "mqt1_pret3": 0,
+  "mqt1_pen4": 0,
+  "mqt1_ptp4": "PubTopic4",
+  "mqt1_pqos4": 0,
+  "mqt1_pret4": 0,
+  "ssl1_en": 0,
+  "ssl1_auth": 2,
+  "ssl1_ca": "\"\"",
+  "ssl1_crt": "\"\"",
+  "ssl1_key": "\"\"",
+  "s_cen": 0,
+  "s_cmod": 1,
+  "s_chost": "socket.usr.cn",
+  "s_cport": 2317,
+  "s_den": 0,
+  "s_dmod": 1,
+  "s_dhost": "socket.usr.cn",
+  "s_dport": 2317,
+  "ht_en": 1,		//启用心跳包
+  "ht_time": 30,	//心跳间隔时间(秒)
+  "ht_dir": 0,		//心跳发送方向 0:向服务器发送心跳包 1:向串口终端发送心跳包 2:双向
+  "ht_type": 3,		//心跳数据类型 0:ICCID码 1:IMEI码 2:SN码 3:用户自定义数据 4:LBS信息
+  "ht_data": "7777772e7573722e636e",//自定义心跳包内容
+  "u_brate": 115200,	//串口波特率
+  "u_pbit": 0,			//串口校验位 [0:NONE (无校验) 1:ODD (奇校验) 2:EVEN (偶校验)]
+  "u_dbit": 8,			//串口数据位		[8]
+  "u_sbit": 1,			//串口停止位		[1,2]
+  "p_time": 50,			//串口打包时间(毫秒)
+  "p_len": 1024,		//串口打包长度(Bytes)
+  "sys_rcon_t": 10,		//Socket重连间隔(S)
+  "sys_rcon_n": 60,		//Socket重连次数
+  "sys_atpwd": "usr.cn#",	//命令字密码
+  "sys_stmsg": "USR-G780s",	//开机启动信息
+  "sys_rstm": 1800,			//无数据&无连接重启时间(秒)
+  "sys_echo": 1,			//开启指令回显
+  "sys_cachen": 1,			//开启串口数据缓存
+  "sys_uaten": 1,			//开启串口AT指令
+  "sys_naten": 1,			//开启网络AT指令
+  "ntp_en": 0,				//开启NTP功能
+  "ntp_addr0": "cn.ntp.org.cn",		//NTP服务器1
+  "ntp_addr1": "us.ntp.org.cn",		//NTP服务器2
+  "ntp_addr2": "\"\"",				//NTP服务器3
+  "ntp_addr3": "\"\"",				//NTP服务器4
+  "ntp_tim": 60,					//NTP校准周期(分钟)
+  "sim_mode": 1,	//SIM卡模式切换 [1:外置卡优先模式,0:单卡锁定模式,2:双卡备份模式]
+  "sim_flag": 0	//SIM卡选择[0:外置卡,1:内置卡]
+}

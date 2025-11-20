@@ -1,0 +1,152 @@
+body{
+	margin: 0;
+	padding: 0;
+}
+*{
+	margin: 0;
+	padding: 0;
+}
+div{box-sizing: border-box;}
+a{text-decoration: none;}
+.flex{
+	display: flex;
+}
+.flex-1{flex: 1;}
+.flex-c{
+	display: flex;
+	align-items: center;
+}
+.flex-cb{
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+.flex-cc{
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.fb{font-weight: bold;}
+.fw{font-weight: 300;}
+.f10{font-size: 10px;}
+.f12{font-size: 12px;}
+.f13{font-size: 13px;}
+.f14{font-size: 14px;}
+.f15{font-size: 15px;}
+.f16{font-size: 16px;}
+.f17{font-size: 17px;}
+.f18{font-size: 18px;}
+.f19{font-size: 19px;}
+.f20{font-size: 20px;}
+.f21{font-size: 21px;}
+.f22{font-size: 22px;}
+.f23{font-size: 23px;}
+.f24{font-size: 24px;}
+.mt5{margin-top: 5px;}
+.mt10{margin-top: 10px;}
+.mt15{margin-top: 15px;}
+.mt20{margin-top: 20px;}
+.mb5{margin-bottom: 5px;}
+.mb10{margin-bottom: 10px;}
+.mb15{margin-bottom: 15px;}
+.mb20{margin-bottom: 20px;}
+.ml5{margin-left: 5px;}
+.ml10{margin-left: 10px;}
+.ml15{margin-left: 15px;}
+.ml20{margin-left: 20px;}
+.ml-10{margin-left: -10px;}
+.mr5{margin-right: 5px;}
+.mr10{margin-right: 10px;}
+.mr15{margin-right: 15px;}
+.mr20{margin-right: 20px;}
+.w100{width: 100px !important;}
+.w120{width: 120px !important;}
+.w140{width: 140px !important;}
+.w160{width: 160px !important;}
+.w180{width: 180px !important;}
+.w200{width: 200px !important;}
+.w240{width: 240px !important;}
+.w180{width: 180px !important;}
+.w300{width: 300px !important;}
+.w340{width: 340px !important;}
+.w360{width: 360px !important;}
+.w400{width: 400px !important;}
+.w440{width: 440px !important;}
+.w500{width: 500px !important;}
+.w600{width: 600px !important;}
+.kd-content{
+	background: #fff;
+	border-radius: 10px;
+	padding: 15px;
+}
+.kd-small-table{
+	.arco-table-td-content{
+		font-size: 12px;
+	}
+}
+.kd-link{
+	cursor: pointer;
+	color: #165dff;
+}
+.tips{
+	color: #999;
+	font-size: 12px;
+}
+
+
+/* 重构主题颜色 */
+/* 重构button颜色 */
+.arco-btn-primary, 
+.arco-btn-primary[type='button'], 
+.arco-btn-primary[type='submit']{
+	background-color:var(--primary-color)!important;
+}
+.arco-btn-outline, .arco-btn-outline[type='button']{
+	color: var(--primary-color)!important;
+	border: 1px solid var(--primary-color)!important;
+}
+
+.arco-btn-text, .arco-btn-text[type='button'], 
+.arco-btn-text[type='submit']{
+	color: var(--primary-color)!important;
+}
+
+
+/* 重构分页 */
+.arco-pagination-item-active, .arco-pagination-item-active:hover{
+	color: var(--primary-color)!important;
+	background-color: var(--primary-color-active)!important;
+}
+
+/* 重构select,input */
+.arco-select-view-single:focus-within, .arco-select-view-single.arco-select-view-focus,
+.arco-input-wrapper:focus-within,
+.arco-textarea-wrapper:focus-within
+{
+	border-color: var(--primary-color)!important;
+	box-shadow: 0 0 0 0 var(--primary-color-active)!important;
+}
+/* 重构radio */
+.arco-radio-checked .arco-radio-icon{
+	border-color:var(--primary-color)!important;
+	background-color:var(--primary-color)!important;
+}
+/* 重构time-picker */
+.arco-picker-focused{
+	border-color: var(--primary-color)!important;
+}
+.arco-picker-cell-today::after{
+	background-color:var(--primary-color)!important;
+}
+.arco-picker-cell-range-start .arco-picker-date-value,.arco-picker-cell-range-end .arco-picker-date-value{
+	background-color:var(--primary-color)!important;
+}
+.arco-picker-cell-in-range .arco-picker-date{
+	background-color: var(--primary-color-active)!important;
+}
+/* 重构switch */
+.arco-switch-checked{
+	background-color:var(--primary-color)!important;
+}
+/* 重构select */
+

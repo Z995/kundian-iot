@@ -1,0 +1,92 @@
+/**
+ * --slide-bg 				导航栏背景
+ * --primary-color 			主题色
+ * --primary-color-active 	二级导航选中，光标选中颜色
+ * --ment-text-color 		导航文字颜色
+ */
+const themeConfig = {
+	themeList:{		//主题列表
+		"blue-black":{
+			name:'蓝黑',
+			color:{
+				"--slide-bg":"#1c202b",				
+				"--primary-color":"#4073FA",		
+				"--primary-color-active":"#e8f4ff",
+				"--ment-text-color":"#ffffff",
+				"--menu-top-text-color":"#000000"
+			}
+		},
+		"blue-white":{
+			name:'蓝白',
+			color:{
+				"--slide-bg":"#ffffff",				
+				"--primary-color":"#4073FA",		
+				"--primary-color-active":"#e8f4ff",
+				"--ment-text-color":"#000000",
+				"--menu-top-text-color":"#000000"
+			}
+		},
+		"green-black":{
+			name:'绿黑',
+			color:{
+				"--slide-bg":"#1c202b",				
+				"--primary-color":"#41b584",		
+				"--primary-color-active":"#d9ede6",
+				"--ment-text-color":"#ffffff",
+				"--menu-top-text-color":"#000000"
+			}
+		},
+		"green-white":{
+			name:'绿白',
+			color:{
+				"--slide-bg":"#ffffff",				
+				"--primary-color":"#41b584",		
+				"--primary-color-active":"#d9ede6",
+				"--ment-text-color":"#000000",
+				"--menu-top-text-color":"#000000"
+			}
+		},
+		"purple-black":{
+			name:'紫黑',
+			color:{
+				"--slide-bg":"#1c202b",				
+				"--primary-color":"#6954f0",		
+				"--primary-color-active":"#f0edfd",
+				"--ment-text-color":"#ffffff",
+				"--menu-top-text-color":"#000000"
+			}
+		},
+		"purple-white":{
+			name:'紫白',
+			color:{
+				"--slide-bg":"#ffffff",				
+				"--primary-color":"#6954f0",		
+				"--primary-color-active":"#f0edfd",
+				"--ment-text-color":"#000000",
+				"--menu-top-text-color":"#000000"
+			}
+		},
+		"red-black":{
+			name:'红黑',
+			color:{
+				"--slide-bg":"#1c202b",				
+				"--primary-color":"#f34d37",		
+				"--primary-color-active":"#fdedeb",
+				"--ment-text-color":"#ffffff",
+				"--menu-top-text-color":"#000000"
+			}
+		},
+		"red-white":{
+			name:'红白',
+			color:{
+				"--slide-bg":"#ffffff",				
+				"--primary-color":"#f34d37",		
+				"--primary-color-active":"#fdedeb",
+				"--ment-text-color":"#000000",
+				"--menu-top-text-color":"#000000"
+			}
+		}
+	}
+}
+
+export default themeConfig
