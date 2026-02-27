@@ -31,25 +31,29 @@
 <script setup>
 import { onMounted, reactive } from 'vue';
 import menuData from '../router/menu';
-import router from '../router';
-import { Modal } from '@arco-design/web-vue';
 import { useDeviceStore } from '@/store/device'
 import { useMenuStore } from '@/store/menu';
 import { useRoute } from 'vue-router';
 import KdLeftRightLayout from '@/components/KdBase/layout/KdLeftRightLayout.vue'
 import KdTopBottomLayout from '@/components/KdBase/layout/KdTopBottomLayout.vue'
+import { useUsrCloudState } from '@/store/usrColud'
 
 const routerData = useRoute()
 const state = reactive({
 })
 const deviceStore = useDeviceStore()
 const menuStore = useMenuStore()
+const usrCloudStore = useUsrCloudState()
+
 onMounted(()=>{
 	menuStore.getRefreshPage()
 	menuStore.state.menu = Object.assign(menuData)
 	menuStore.getOpenMenu(routerData.fullPath)
 	//链接socket
 	deviceStore.connect()
+
+	//初始化有人云sdk
+	//usrCloudStore.initSdk()
 })
 
 </script>

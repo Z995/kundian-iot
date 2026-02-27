@@ -14,6 +14,7 @@ const menuData = [
 			{id:'deviceList',name:'设备列表',path:'/device/list',show:true},
 			{id:'deviceTemp',name:'设备模板',path:'/device/mould',show:true},
 			{id:'deviceProduct',name:'产品库',path:'/device/product',show:true},
+			{id:'deviceSet',name:'第三方密钥',path:'/device/set',show:true},
 		],
 	},
 	{

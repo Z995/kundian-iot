@@ -112,6 +112,8 @@ const state = reactive({
 onActivated(()=>{
 	getList(state.info.page,state.info.limit)
 })
+
+
 function getSearchData(data){
 	state.search = data
 	getList(1,10)

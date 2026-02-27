@@ -64,3 +64,15 @@ export function deleteAccountData(data){
         data:data
     })
 }
+
+/**
+ * 获取第三方密钥
+ * @returns
+ */
+export function getSecretKey(){
+    return request({
+        url:`${api_url}saveSecretKey`,
+        method:'post'
+    })
+}
+

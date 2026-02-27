@@ -12,6 +12,7 @@ const routes = [
 			{name:'设备列表-设备详情',path:'/device/deviceDetail',component:()=>import('@/pages/device/deviceDetail.vue')},
 			{name:'设备模板',path:'/device/mould',component:()=>import('@/pages/device/mould.vue'),meta:{keepAlive:true,name:'DeviceMouldList'}},
 			{name:'设备模板-新增/编辑',path:'/device/mouldAdd',component:()=>import('@/pages/device/mouldAdd.vue')},
+			{name:'设备列表-第三方密钥获取',path:'/device/set',component:()=>import('@/pages/device/set.vue'),meta:{keepAlive:true,name:'DeviceSet'}},
 			{name:'产品库',path:'/device/product',component:()=>import('@/pages/device/product.vue'),meta:{keepAlive:true,name:'DeviceProductList'}},
 			{name:'产品库-新增/编辑',path:'/device/productAdd',component:()=>import('@/pages/device/productAdd.vue')},
 			{name:'网关列表',path:'/gateway/list',component:()=>import('@/pages/gateway/list.vue'),meta:{keepAlive:true,name:'GatewayList'}},

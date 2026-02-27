@@ -225,3 +225,6 @@ export function getProductDetail(data){
         params:data
     })
 }
+
+
+

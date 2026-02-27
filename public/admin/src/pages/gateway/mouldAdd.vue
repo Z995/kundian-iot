@@ -141,6 +141,10 @@ async function saveData(){
 	if( !form.id ) delete form.id
 	//验证型号功能内容是否填写完整
 	let flag = false
+	if(form.instruct.length == 0){
+		Message.error('型号功能内容不能为空')
+		return
+	}
 	for (var i = 0; i < form.instruct.length; i++) {
 		if( !form.instruct[i].instruct_id || !form.instruct[i].command ){
 			flag = true

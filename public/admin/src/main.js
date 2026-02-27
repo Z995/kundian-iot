@@ -56,7 +56,9 @@ app.component('kd-copy',KdCopy)
 //路由监听
 router.beforeEach((to,next)=>{
 	NProgress.start();
-	
+	if(to.query && (to.query.ApiToken)) {
+		localStorage.setItem('_IOT_TOKEN_','ApiToken '+to.query.ApiToken)
+	}
 	//判断当前是否登录，没有登录则跳转登录页面
 	let token = localStorage.getItem('_IOT_TOKEN_')
 	if( !token && to.path !=='/login' && to.path !== '/live/wxlive'){
